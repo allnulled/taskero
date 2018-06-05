@@ -126,7 +126,8 @@ describe("Taskero class", function() {
 				function(done, file, args) {
 					done();
 				}
-			]
+			],
+			onDone: []
 		});
 		taskero
 			.run([
@@ -324,6 +325,7 @@ describe("Taskero class", function() {
 			onDone: function(done, files, args) {
 				done("Hello from onDone callback!");
 			},
+			files: "this.is.an.impossiblefile.txt.i.hope",
 			onDoneFile: __dirname + "/samples/output.txt"
 		});
 		taskero
@@ -377,10 +379,31 @@ describe("Taskero class", function() {
 				__dirname + "/samples/sample5.txt",
 				__dirname + "/samples/sample6.txt",
 				__dirname + "/samples/sample7.txt"
+			],
+			onWatchError: function(error) {
+				console.log("[taskero:tarea:9] Error on watch event:", error);
+			}
+		});
+		taskero.register({
+			name: "tarea:9.5",
+			watch: true,
+			onDone: function(done, files, args) {
+				fs.writeFileSync(
+					__dirname + "/samples/output-from-watch-2.txt",
+					"This is Sparta 2",
+					"utf8"
+				);
+				done(null, { name: "RandomError" });
+			},
+			onDoneFile: __dirname + "/samples/output-from-watch-2.txt",
+			files: [
+				__dirname + "/samples/sample5.txt",
+				__dirname + "/samples/sample6.txt",
+				__dirname + "/samples/sample7.txt"
 			]
 		});
 		taskero
-			.run("tarea:9")
+			.run(["tarea:9", "tarea:9.5"])
 			.then(function() {
 				// @TODO: change contents from __dirname + "/samples/sample5.txt" and, with a (dirty) timeout, check if the task was correctly done.
 				expect(
@@ -401,6 +424,14 @@ describe("Taskero class", function() {
 							.readFileSync(__dirname + "/samples/output-from-watch.txt")
 							.toString()
 					).to.equal("This is Sparta");
+					expect(
+						fs.existsSync(__dirname + "/samples/output-from-watch-2.txt")
+					).to.equal(true);
+					expect(
+						fs
+							.readFileSync(__dirname + "/samples/output-from-watch-2.txt")
+							.toString()
+					).to.equal("This is Sparta 2");
 					done();
 				}, 3000);
 			})
@@ -411,34 +442,157 @@ describe("Taskero class", function() {
 	});
 
 	it("does not print messages when debug is not enabled", function(done) {
-		done();
+		const taskero2 = new Taskero();
+		taskero2.register({
+			name: "tarea:10",
+			onDone: function(done) {
+				done();
+			}
+		});
+		var consoleMessages = [];
+		const consolelog = console.log;
+		console.log = function() {
+			consoleMessages = consoleMessages.concat(
+				Array.prototype.slice.call(arguments)
+			);
+		};
+		taskero2
+			.run("tarea:10")
+			.then(function() {
+				expect(consoleMessages.length).to.equal(0);
+				console.log = consolelog;
+				done();
+			})
+			.catch(function() {
+				expect(true).to.equal(false);
+			});
 	});
 
 	it("throws when a task to be registered is duplicated", function(done) {
-		done();
+		this.timeout(5000);
+		expect(function() {
+			taskero.register({
+				name: "task:11",
+				onDone: undefined,
+				onEach: undefined
+			});
+			taskero.register({
+				name: "task:11",
+				onDone: undefined,
+				onEach: undefined
+			});
+		}).to.throw();
+		setTimeout(done, 1000);
 	});
 
 	it("throws when it receives invalid parameters for method Taskero#run(~)", function(done) {
-		done();
+		this.timeout(5000);
+		try {
+			taskero.run(undefined);
+		} catch (error) {
+			expect(typeof error).to.equal("object");
+			expect(error.name).to.equal("Taskero:InvalidRunParametersError");
+			done();
+		}
 	});
 
 	it("throws when {task.onEach} is invalid", function(done) {
-		done();
+		this.timeout(5000);
+		taskero.register({
+			name: "task:12",
+			onEach: "This is not a valid value for onEach"
+		});
+		taskero
+			.run("task:12")
+			.then(function() {
+				expect(true).to.equal(false);
+			})
+			.catch(function(error) {
+				expect(typeof error).to.equal("object");
+				expect(error.name).to.equal("Taskero:ParameterOnEachNotValidError");
+				done();
+			});
 	});
 
 	it("throws when {task.onDone} is invalid", function(done) {
-		done();
+		this.timeout(5000);
+		taskero.register({
+			name: "task:13",
+			onDone: "This is not a valid value for onDone"
+		});
+		taskero
+			.run("task:13")
+			.then(function() {
+				expect(true).to.equal(false);
+			})
+			.catch(function(error) {
+				expect(typeof error).to.equal("object");
+				expect(error.name).to.equal("Taskero:ParameterOnDoneNotValidError");
+				done();
+			});
 	});
 
 	it("throws when {task.name} is not registered", function(done) {
-		done();
+		this.timeout(5000);
+		taskero
+			.run("task:14")
+			.then(function() {
+				expect(true).to.equal(false);
+			})
+			.catch(function(error) {
+				expect(typeof error).to.equal("object");
+				expect(error.name).to.equal("Taskero:TaskToRunNotFoundError");
+				done();
+			});
 	});
 
 	it("throws when {task.onDone} sends errors asynchronously (through 2nd parameter)", function(done) {
-		done();
+		this.timeout(5000);
+		taskero.register({
+			name: "task:14",
+			onDone: function(done) {
+				done(null, {
+					name: "CustomError",
+					message: "This is a custom error"
+				});
+			}
+		});
+		taskero
+			.run("task:14")
+			.then(function() {
+				expect(true).to.equal(false);
+			})
+			.catch(function(error) {
+				expect(typeof error).to.equal("object");
+				expect(error.name).to.equal("CustomError");
+				expect(error.message).to.equal("This is a custom error");
+				done();
+			});
 	});
 
 	it("accepts {task.files} as a simple string too", function(done) {
-		done();
+		this.timeout(5000);
+		const messages = [];
+		taskero.register({
+			name: "task:15",
+			onEach: function(done, file, args) {
+				messages.push(file.path);
+				done();
+			}
+		});
+		taskero
+			.run({
+				name: "task:15",
+				files: __dirname + "/samples/sample1.txt"
+			})
+			.then(function() {
+				expect(messages.length).to.equal(1);
+				expect(messages[0]).to.equal(__dirname + "/samples/sample1.txt");
+				done();
+			})
+			.catch(function(error) {
+				console.log("Error:", error);
+				expect(true).to.equal(false);
+			});
 	});
 });
