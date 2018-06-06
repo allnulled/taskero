@@ -6,7 +6,7 @@
  * ![](https://img.shields.io/badge/taskero-v1.0.0-green.svg) ![](https://img.shields.io/badge/test-passing-green.svg) ![](https://img.shields.io/badge/coverage-100%25-green.svg) ![](https://img.shields.io/badge/stable-90%25-orange.svg)
  *
  *
- * Task automation tool with special focus on: asynchronizity, parametrization and automatic watchers functionality.
+ * Task automation tool with special focus on: asynchronicity, parameterization and automatic watches functionality.
  *
  * ## 1. Installation
  *

@@ -2,7 +2,7 @@
   "name": "taskero",
   "version": "1.0.0",
   "description":
-    "Task automation tool with special focus on: asynchronizity, parametrization and automatic watchers functionality.",
+    "Task automation tool with special focus on: asynchronicity, parameterization and automatic watches functionality.",
   "main": "src/taskero.js",
   "directories": {
     "test": "test"
