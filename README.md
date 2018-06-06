@@ -444,28 +444,66 @@ a synchronous way).
  
 
 
-----
+## 4. Tests, coverage and documentation
 
-### `Taskero#tasks`
+The `package.json` file is provided with 3 commands:
 
+- `npm run docs`: it generates the documentation from the Javadoc
+comments of the `src/taskero.js` file, which contains the whole
+library.
 
-**Type:** `{Array<Object>}`.
+- `npm run test`: it runs the tests and generates the coverage
+reports into `coverage/` folder.
 
-
-**Description:** Map of tasks registered by this instance.
-
-
-
-
- 
-
-
-#
+- `npm run test-nocov`: it runs the tests, but it does not
+generate coverage reports. Use this command if you want to run
+tests fastly.
 
 
+## 5. Why?
+
+I felt that Grunt is cool, and Gulp is cool, and Webpack is cool.
+
+Yes, they are cool.
+
+But:
+
+- Webpack, which was the coolest, complicated things too much.
+
+- Grunt, which was my favourite, lacks of parametrization.
+
+- Gulp, which was very promising, has a strange API.
 
 
 
+## 6. Problems
+
+I am not an engineer. I just make tools that fit my needs. But I
+do not have a deep understanding, or know the best algorythms for
+doing what I want to do. I can imagine better ways to do them.
+But I still do not care too much about this point. It may result
+dangerous, when I do not have the deep knowledge I should have.
+
+In other words: this tool seems to work great for some tasks. But
+I do not know what can happen if I put a hundred tasks to run,
+a thousand files to watch, etc.
+
+But... I supose I can split my tasks into different files, and run
+them selectively, depending on which part of the project I am
+working on. I do not know. I want to think that I am not losing my
+time working on tools like this one. In the end, I am already using
+my own tools for my developments.
+
+
+## 7. Conclusions
+
+In conclusion, `Taskero` is a project that aims to ease the tasks
+automation, which is a very fundamental part of any software
+development project, and which takes a lot of time in development.
+
+Also, I wanted to give more open source projects, I can not compite
+against companies, or engineers, but... maybe I can provide something
+interesting to them, despite not having a job yet. I do not know.
 
 
 

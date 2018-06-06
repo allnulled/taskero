@@ -56,7 +56,7 @@ describe("Taskero class", function() {
 			onEach: undefined,
 			onDone: undefined
 		});
-		expect(taskero.tasks).to.have.keys(["tarea:1", "tarea:2"]);
+		expect(taskero.tasksMap).to.have.keys(["tarea:1", "tarea:2"]);
 	});
 
 	it("can run tasks successfully by only their name", function(done) {
