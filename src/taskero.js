@@ -172,6 +172,7 @@ const path = require(`path`);
 const chokidar = require("chokidar");
 const dateformat = require("dateformat");
 const fs = require(`fs-extra`);
+const consoleTable = require("console.table");
 
 /**
  *
@@ -247,7 +248,9 @@ class Taskero {
 		 */
 		this.options = Object.assign(
 			{
-				debug: false
+				debug: false,
+				error: true,
+				files: []
 			},
 			optionsParam
 		);
@@ -263,6 +266,22 @@ class Taskero {
 		 *
 		 */
 		this.watchers = [];
+		// Load external taskero files:
+		const thisInstance = this;
+		this.options.files = [].concat(this.options.files);
+		this.options.files.forEach(function(file) {
+			try {
+				thisInstance.tasksMap = Object.assign(
+					thisInstance.tasksMap,
+					require(file).tasksMap
+				);
+			} catch (exc) {
+				throw {
+					name: "Taskero:InvalidFileRequiredError",
+					message: "Invalid Taskero file was required."
+				};
+			}
+		});
 	}
 	/**
 	 *
@@ -383,7 +402,11 @@ class Taskero {
 	 *
 	 * @parameter `{Array<Object>} tasks`. Set of tasks to be run. They will be
 	 * executed one after the other. The object will override the one passed to
-	 * the task registration.
+	 * the registered task (that has the same name). The objects inside this
+	 * array, so, are the same as the ones defined in the registration: Taskero
+	 * tasks. The parameters added or overriden, are only overriden for the
+	 * execution. This lets the user to refer to different files, but take some
+	 * default files, for example.
 	 *
 	 * @returns `{Promise}`. To chain the `then(~)` and `catch(~)` calls.
 	 *
@@ -571,7 +594,7 @@ class Taskero {
 												function(data, error) {
 													if (error) {
 														// @DONE: when it is called like `done(data, error)`, handle the error
-														thisInstance.debug(
+														thisInstance.error(
 															`[taskero] Error thrown by onEach function with file ${
 																file.path
 															}.`,
@@ -599,7 +622,7 @@ class Taskero {
 										function(errorOnFile) {
 											if (errorOnFile) {
 												// @DONE: check the errors
-												thisInstance.debug(
+												thisInstance.error(
 													`[taskero] Error thrown by onEach function.`,
 													errorOnFile
 												);
@@ -614,7 +637,7 @@ class Taskero {
 									// @DONE: check the errors
 									if (errorOnEach) {
 										//
-										thisInstance.debug(
+										thisInstance.error(
 											`[taskero] Error thrown by onEach iteration.`,
 											errorOnEach
 										);
@@ -645,7 +668,7 @@ class Taskero {
 													function(data, error) {
 														if (error) {
 															// @DONE: when it is called like `done(data, error)`, handle the error
-															thisInstance.debug(
+															thisInstance.error(
 																`[taskero] Error thrown by onDone function.`,
 																error
 															);
@@ -680,7 +703,7 @@ class Taskero {
 											},
 											function(onDoneError) {
 												if (onDoneError) {
-													thisInstance.debug(
+													thisInstance.error(
 														`[taskero] Error thrown by onDone iteration.`,
 														onDoneError
 													);
@@ -733,7 +756,7 @@ class Taskero {
 				},
 				function(errorTask) {
 					if (errorTask) {
-						thisInstance.debug(`[taskero] Error thrown by task.`, errorTask);
+						thisInstance.error(`[taskero] Error thrown by task.`, errorTask);
 						return rejectRun.call(thisInstance, errorTask);
 					} else {
 						thisInstance.debug(
@@ -774,7 +797,7 @@ class Taskero {
 	 *
 	 * @type `{Function}`.
 	 *
-	 * @parameters `{none}`.
+	 * @parameters `{Any:message,...}`.
 	 *
 	 * @returns `{void}`.
 	 *
@@ -785,6 +808,324 @@ class Taskero {
 		if (this.options.debug) {
 			console.log.apply(console, Array.prototype.slice.call(arguments));
 		}
+	}
+	/**
+	 *
+	 * ----
+	 *
+	 * ### `Taskero#error(Any:message,...)`
+	 *
+	 * @type `{Function}`.
+	 *
+	 * @parameters `{Any:message,...}`.
+	 *
+	 * @returns `{void}`.
+	 *
+	 * @description Logs the provided messages, only if the `Taskero#options.error` is set to `true` (which by default, it is).
+	 *
+	 */
+	error() {
+		if (this.options.debug || this.options.error) {
+			console.log.apply(console, Array.prototype.slice.call(arguments));
+		}
+	}
+	/**
+	 *
+	 * ----
+	 *
+	 * ### `Taskero.execute()`
+	 *
+	 * ### `Taskero.execute(Array<String>:command)`
+	 *
+	 * ### `Taskero.execute(String:command)`
+	 *
+	 * @type `{Function}`.
+	 *
+	 * @parameters `{Array<String>:command | String:command | void}`. Commands to execute. It can be
+	 * an array of strings (like `process.argv`), a normal string (as the input of the command-line)
+	 * or nothing at all (in which case, the `process.argv` is taken as parameter).
+	 *
+	 * @returns `{void}`.
+	 *
+	 * @description Executes a specific command, as a normal command-line tool would.
+	 *
+	 *
+	 */
+	static execute(commandParameter) {
+		var runCommands = undefined;
+		if (typeof commandParameter === "string") {
+			runCommands = Taskero.transformCommands(commandParameter);
+		} else {
+			runCommands = commandParameter;
+		}
+		switch (runCommands.type) {
+			case "list":
+				console.log("Listing commands of taskero", runCommands);
+				return new Promise(function(resolve, reject) {
+					var msg = ``;
+					const prettyPrintFile = function(file, taskContents, fileTasks) {
+						return `
+|
+| { File: } ${file}
+|
+${taskContents}`;
+					};
+					const prettyPrintTask = function(task) {
+						var out = "";
+						out += `| { Task: } ${task.name}
+| { Description: }
+| | ${task.description.replace(/\n/g, "\n| | ")}
+|
+`;
+						return out;
+					};
+					runCommands.files.forEach(function(file) {
+						const taskeroInstance = require(file);
+						var fileTasks = [];
+						Object.keys(taskeroInstance.tasksMap).forEach(function(key) {
+							var task = taskeroInstance.tasksMap[key].info;
+							var taskDescription =
+								typeof task.metadata === "object" &&
+								typeof task.metadata.description === "string"
+									? task.metadata.description
+									: "- No description -";
+							fileTasks.push({
+								name: task.name,
+								description: taskDescription
+							});
+						});
+						const taskContents = fileTasks.map(prettyPrintTask).join("");
+						msg += prettyPrintFile(file, taskContents, fileTasks);
+					});
+					console.log(msg);
+					resolve();
+				});
+			case "help":
+				console.log("Help of taskero");
+				return new Promise(function(resolve, reject) {
+					resolve();
+				});
+			case "run":
+				//
+				// @TODO: instantiate a new Taskero instance
+				//
+				const taskero = new Taskero(runCommands.instance);
+				//
+				// @TODO: run all the commands specified as parameters
+				//
+				return taskero.run(runCommands.run);
+		}
+	}
+	/**
+	 *
+	 * ----
+	 *
+	 * ### `Taskero.transformCommands()`
+	 *
+	 * ### `Taskero.transformCommands(Array<String>:command)`
+	 *
+	 * ### `Taskero.transformCommands(String:command)`
+	 *
+	 * @type `{Function}`.
+	 *
+	 * @parameters `{Array<String>:command | String:command | void}`. Commands to execute. It can be
+	 * an array of strings (like `process.argv`), a normal string (as the input of the command-line)
+	 * or nothing at all (in which case, the `process.argv` is taken as parameter).
+	 *
+	 * @returns `{void}`.
+	 *
+	 * @description Executes a specific command, as a normal command-line tool would.
+	 *
+	 *
+	 *
+	 */
+	static transformCommands(commandParameter) {
+		var transformation = {
+			type: "run",
+			instance: {},
+			run: []
+		};
+		var words = null;
+		if (typeof commandParameter === "undefined") {
+			words = process.argv;
+		} else if (typeof commandParameter === "string") {
+			words = require("string-argv")(commandParameter);
+		} else if (commandParameter instanceof Array) {
+			words = commandParameter;
+		} else {
+			throw {
+				name: "Taskero:InvalidCommandsProvided",
+				args: commandParameter,
+				message: "Invalid arguments to be transformed to runnable arguments."
+			};
+		}
+		/*
+
+		Valid commands:
+
+		~$ taskero run [--debug] [--taskero ./taskero.file.js] [--name default]
+
+		>>> {
+			instance: {
+				debug: true,
+				files: ["./taskero.file.js"]
+			},
+			run: [{
+				name: "default"
+			}]
+		}
+
+		~$ taskero run [--debug] [--taskero ./taskero.file.js] [--name] {your:task}
+		~$ taskero run [--debug] [--taskero ./taskero.file.js] [--name] {your:task} {your:task} {your:task}
+		~$ taskero run [--debug] [--taskero ./taskero.file.js] {your:task} --arg1 {...taskarguments...} --name {...taskarguments...}
+		~$ taskero run [--debug] 
+				[
+				--taskeros 
+					"./taskero.js"
+					"./dev/another.taskero.js"
+				]
+				--name # name: "jsx:compile"
+					"jsx:compile"
+				--arg1 # arg1: [1,2,3,"@ this parameter starts with @"]
+					"number:1"
+					"number:2"
+					"number:3"
+					"string:-- this parameter starts with --"
+				--arg2 # arg2: ["default", "default1", "default2"]
+					"default"
+					"default1"
+					"default2"
+				--arg3
+					"number:1"
+					"number:2"
+					"number:3"
+					"string:@@@@ for 3 @ at the begining, and so on"
+				--watch # watch: false (overrides the previous --watch)
+					boolean:false
+				--watch 
+
+		//*/
+		//
+		// @TODO: transform (objectualize) parameters passed
+		//
+		var index = 0;
+		var execution = undefined;
+		var lastCommand = undefined;
+		// console.log("Command: ", words);
+		WordsIteration: while (index < words.length) {
+			var word = words[index];
+			index++;
+			// console.log();
+			// console.log();
+			// console.log("State:", JSON.stringify(transformation, null, 3));
+			// console.log("Word:", word);
+			if (typeof execution === "undefined") {
+				if (~["run"].indexOf(word)) {
+					execution = word;
+				} else if (~["help"].indexOf(word)) {
+					transformation.type = "help";
+					return transformation;
+				} else if (~["list"].indexOf(word)) {
+					transformation.type = "list";
+					transformation.files = [];
+					words.splice(index).forEach(function(file) {
+						transformation.files.push(file);
+					});
+					return transformation;
+				}
+			} else if (execution === "run") {
+				//
+				//
+				if (typeof lastCommand === "undefined") {
+					//
+					//
+					if (~["--debug", "-d"].indexOf(word)) {
+						transformation.instance.debug = true;
+						continue WordsIteration;
+					}
+					//
+					//
+					else if (
+						~["--taskeros", "--taskero", "--files", "--file", "-f"].indexOf(
+							word
+						)
+					) {
+						transformation.instance.files = [];
+						lastCommand = "run:--taskeros";
+						continue WordsIteration;
+					}
+					//
+					//
+					else {
+						transformation.run.push({
+							name: word
+						});
+						lastCommand = "--name";
+						continue WordsIteration;
+					}
+				}
+				//
+				//
+				else if (lastCommand === "run:--taskeros") {
+					if (~["--name", "-n"].indexOf(word)) {
+						transformation.run.push({});
+						lastCommand = "--name";
+						continue WordsIteration;
+					} else {
+						transformation.instance.files.push(word);
+						continue WordsIteration;
+					}
+				}
+				//
+				//
+				else if (lastCommand === "--name") {
+					if (~["--name", "-n"].indexOf(word)) {
+						transformation.run.push({});
+						continue WordsIteration;
+					} else if (word.startsWith("--")) {
+						lastCommand = word;
+						continue WordsIteration;
+					} else {
+						transformation.run[transformation.run.length - 1].name = word;
+						continue WordsIteration;
+					}
+				}
+				//
+				//
+				else {
+					if (~["--name", "-n"].indexOf(word)) {
+						transformation.run.push({});
+						continue WordsIteration;
+					} else if (word.startsWith("--")) {
+						lastCommand = word;
+						continue WordsIteration;
+					} else {
+						const lastCommandProperty = lastCommand.replace(/^\-\-/g, "");
+						if (
+							typeof transformation.run[transformation.run.length - 1][
+								lastCommandProperty
+							] === "undefined"
+						) {
+							transformation.run[transformation.run.length - 1][
+								lastCommandProperty
+							] = [];
+						}
+						transformation.run[transformation.run.length - 1][
+							lastCommandProperty
+						].push(word);
+						continue WordsIteration;
+					}
+				}
+			} else if (execution === "list") {
+			}
+		}
+		if (transformation.run.length === 0) {
+			transformation.run.push({
+				name: "default"
+			});
+		}
+
+		return transformation;
 	}
 }
 

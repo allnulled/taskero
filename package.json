@@ -1,14 +1,16 @@
 {
   "name": "taskero",
   "version": "1.0.1",
-  "description": "Task automation tool with special focus on: asynchronicity, parameterization and automatic watches functionality.",
+  "description":
+    "Task automation tool with special focus on: asynchronicity, parameterization and automatic watches functionality.",
   "main": "src/taskero.js",
   "directories": {
     "test": "test"
   },
   "scripts": {
-    "test": "nyc --reporter=html node_modules/.bin/mocha test/*",
-    "test-nocov": "mocha test/*",
+    "test": "nyc --reporter=html node_modules/.bin/mocha test/*.test.js --bail",
+    "test-nocov": "mocha test/*.test.js --bail",
+    "test-nocov-nostop": "mocha test/*.test.js",
     "docs": "javadoc -i src/taskero.js -o README.md -f markdown"
   },
   "author": "",
@@ -16,7 +18,10 @@
   "devDependencies": {
     "alert-node": "^1.2.1",
     "chai": "^4.1.2",
+    "deep-equal": "^1.0.1",
+    "execute-command-sync": "^1.0.2",
     "fs-extra": "^6.0.1",
+    "function-wrapper": "^1.1.0",
     "javadoc": "^1.0.3",
     "mocha": "^5.2.0",
     "nyc": "^12.0.1",
@@ -25,8 +30,11 @@
   "dependencies": {
     "async": "^2.6.1",
     "chokidar": "^2.0.3",
+    "console.table": "^0.10.0",
     "dateformat": "^3.0.3",
-    "globby": "^8.0.1"
+    "globby": "^8.0.1",
+    "string-argv": "0.0.2",
+    "yargs": "^11.0.0"
   },
   "repository": {
     "type": "git",

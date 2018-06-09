@@ -1,7 +1,7 @@
 const { expect, assert } = require("chai");
 const fs = require("fs-extra");
 const rimraf = require("rimraf");
-const alert = require("alert-node");
+const { ConsoleManager } = require("function-wrapper");
 
 describe("Taskero class", function() {
 	var utils = {
@@ -16,6 +16,7 @@ describe("Taskero class", function() {
 	var TaskeroAPI, Taskero, taskero;
 
 	before(function() {
+		ConsoleManager.saveLog(true);
 		utils.dump(__dirname + "/samples/sample1.txt", "sample1.txt", "utf8");
 		utils.dump(__dirname + "/samples/sample2.txt", "sample2.txt", "utf8");
 		utils.dump(__dirname + "/samples/sample3.txt", "sample3.txt", "utf8");
@@ -31,21 +32,26 @@ describe("Taskero class", function() {
 
 	it("is retrievable", function(done) {
 		this.timeout(10000);
+		ConsoleManager.saveLog(true);
 		TaskeroAPI = require("../src/taskero.js");
 		expect(typeof TaskeroAPI).to.equal("object");
 		Taskero = TaskeroAPI.Taskero;
 		expect(typeof Taskero).to.equal("function");
+		ConsoleManager.recoverLog();
 		done();
 	});
 
 	it("is instantiable", function() {
+		ConsoleManager.saveLog(true);
 		taskero = new Taskero({
-			debug: true
+			debug: false
 		});
 		expect(typeof taskero).to.equal("object");
+		ConsoleManager.recoverLog();
 	});
 
 	it("can register tasks successfully", function() {
+		ConsoleManager.saveLog(true);
 		taskero.register({
 			name: "tarea:1",
 			onEach: undefined,
@@ -57,9 +63,11 @@ describe("Taskero class", function() {
 			onDone: undefined
 		});
 		expect(taskero.tasksMap).to.have.keys(["tarea:1", "tarea:2"]);
+		ConsoleManager.recoverLog();
 	});
 
 	it("can run tasks successfully by only their name", function(done) {
+		ConsoleManager.saveLog(true);
 		var data1 = "Something";
 		taskero.register({
 			name: "tarea:3",
@@ -73,6 +81,7 @@ describe("Taskero class", function() {
 			.run("tarea:3", { files: __dirname + "/samples/**/*.txt" })
 			.then(function() {
 				// expect(data1).to.equal("Something else");
+				ConsoleManager.recoverLog();
 				done();
 			})
 			.catch(function(error) {
@@ -81,6 +90,7 @@ describe("Taskero class", function() {
 	});
 
 	it("can run tasks with onEach and onDone callbacks correctly", function(done) {
+		ConsoleManager.saveLog(true);
 		taskero.register({
 			name: "tarea:4",
 			onEach: function(done, file, args) {
@@ -102,6 +112,7 @@ describe("Taskero class", function() {
 				]
 			})
 			.then(function() {
+				ConsoleManager.recoverLog();
 				done();
 			})
 			.catch(function(error) {
@@ -111,6 +122,7 @@ describe("Taskero class", function() {
 
 	it("can run multiple tasks at once", function(done) {
 		this.timeout(5000);
+		ConsoleManager.saveLog(true);
 		taskero.register({
 			name: "tarea:5",
 			onEach: [
@@ -242,17 +254,18 @@ describe("Taskero class", function() {
 				expect(
 					fs.readFileSync(__dirname + "/samples/sample2.txt").toString()
 				).to.equal("REQUEST 8");
+				ConsoleManager.recoverLog();
 				done();
 			})
 			.catch(function(error) {
 				console.log("Error on tarea:3 or tarea:4 or tarea:5", error);
-				done();
 			});
 	});
 
 	it("stops the execution for onEach errors and avoids dumping data to files", function(done) {
 		//
 		this.timeout(5000);
+		ConsoleManager.saveLog(true);
 		var counter = 0;
 		taskero.register({
 			name: "tarea:6",
@@ -294,13 +307,10 @@ describe("Taskero class", function() {
 				]
 			})
 			.then(function() {
-				console.log("ARGSSS", arguments);
 				expect(true).to.equal(false);
-				done();
 			})
 			.catch(function(error) {
 				expect(typeof error).to.equal("object");
-				console.log("ERROR ARISED", error);
 				//expect(error).to.have.keys(["name", "message"]);
 				expect(error.name).to.equal("SomeSortOfError");
 				expect(error.message).to.equal("Message of some sort of error.");
@@ -313,12 +323,14 @@ describe("Taskero class", function() {
 				expect(
 					fs.readFileSync(__dirname + "/samples/sample5.txt").toString()
 				).to.equal("sample5.txt");
+				ConsoleManager.recoverLog();
 				done();
 			});
 	});
 
 	it("dumps data when {task.onDone} returns a string and {task.onDoneFile} is a string", function(done) {
 		this.timeout(15000);
+		ConsoleManager.saveLog(true);
 		expect(fs.existsSync(__dirname + "/samples/output.txt")).to.equal(false);
 		taskero.register({
 			name: "tarea:7",
@@ -335,6 +347,7 @@ describe("Taskero class", function() {
 				expect(
 					fs.readFileSync(__dirname + "/samples/output.txt").toString()
 				).to.equal("Hello from onDone callback!");
+				ConsoleManager.recoverLog();
 				done();
 			})
 			.catch(function(error) {
@@ -344,6 +357,7 @@ describe("Taskero class", function() {
 
 	it("gives a notification when {task.onDone} returns a string and {task.onDoneFile} is a not string", function(done) {
 		this.timeout(15000);
+		ConsoleManager.saveLog(true);
 		taskero.register({
 			name: "tarea:8",
 			onDone: function(done, file, args) {
@@ -355,6 +369,7 @@ describe("Taskero class", function() {
 		taskero
 			.run("tarea:8")
 			.then(function() {
+				ConsoleManager.recoverLog();
 				done();
 			})
 			.catch(function() {
@@ -365,6 +380,7 @@ describe("Taskero class", function() {
 	it("directly watches {task.files} for any task when {task.watch} is set to true", function(done) {
 		//
 		this.timeout(8000);
+		ConsoleManager.saveLog(true);
 		expect(
 			fs.existsSync(__dirname + "/samples/output-from-watch.txt")
 		).to.equal(false);
@@ -432,6 +448,7 @@ describe("Taskero class", function() {
 							.readFileSync(__dirname + "/samples/output-from-watch-2.txt")
 							.toString()
 					).to.equal("This is Sparta 2");
+					ConsoleManager.recoverLog();
 					done();
 				}, 3000);
 			})
@@ -470,6 +487,7 @@ describe("Taskero class", function() {
 
 	it("throws when a task to be registered is duplicated", function(done) {
 		this.timeout(5000);
+		ConsoleManager.saveLog(true);
 		expect(function() {
 			taskero.register({
 				name: "task:11",
@@ -482,22 +500,28 @@ describe("Taskero class", function() {
 				onEach: undefined
 			});
 		}).to.throw();
-		setTimeout(done, 1000);
+		setTimeout(function() {
+			ConsoleManager.recoverLog();
+			done();
+		}, 1000);
 	});
 
 	it("throws when it receives invalid parameters for method Taskero#run(~)", function(done) {
 		this.timeout(5000);
+		ConsoleManager.saveLog(true);
 		try {
 			taskero.run(undefined);
 		} catch (error) {
 			expect(typeof error).to.equal("object");
 			expect(error.name).to.equal("Taskero:InvalidRunParametersError");
+			ConsoleManager.recoverLog();
 			done();
 		}
 	});
 
 	it("throws when {task.onEach} is invalid", function(done) {
 		this.timeout(5000);
+		ConsoleManager.saveLog(true);
 		taskero.register({
 			name: "task:12",
 			onEach: "This is not a valid value for onEach"
@@ -510,12 +534,14 @@ describe("Taskero class", function() {
 			.catch(function(error) {
 				expect(typeof error).to.equal("object");
 				expect(error.name).to.equal("Taskero:ParameterOnEachNotValidError");
+				ConsoleManager.recoverLog();
 				done();
 			});
 	});
 
 	it("throws when {task.onDone} is invalid", function(done) {
 		this.timeout(5000);
+		ConsoleManager.saveLog(true);
 		taskero.register({
 			name: "task:13",
 			onDone: "This is not a valid value for onDone"
@@ -528,12 +554,14 @@ describe("Taskero class", function() {
 			.catch(function(error) {
 				expect(typeof error).to.equal("object");
 				expect(error.name).to.equal("Taskero:ParameterOnDoneNotValidError");
+				ConsoleManager.recoverLog();
 				done();
 			});
 	});
 
 	it("throws when {task.name} is not registered", function(done) {
 		this.timeout(5000);
+		ConsoleManager.saveLog(true);
 		taskero
 			.run("task:14")
 			.then(function() {
@@ -542,12 +570,14 @@ describe("Taskero class", function() {
 			.catch(function(error) {
 				expect(typeof error).to.equal("object");
 				expect(error.name).to.equal("Taskero:TaskToRunNotFoundError");
+				ConsoleManager.recoverLog();
 				done();
 			});
 	});
 
 	it("throws when {task.onDone} sends errors asynchronously (through 2nd parameter)", function(done) {
 		this.timeout(5000);
+		ConsoleManager.saveLog(true);
 		taskero.register({
 			name: "task:14",
 			onDone: function(done) {
@@ -566,12 +596,14 @@ describe("Taskero class", function() {
 				expect(typeof error).to.equal("object");
 				expect(error.name).to.equal("CustomError");
 				expect(error.message).to.equal("This is a custom error");
+				ConsoleManager.recoverLog();
 				done();
 			});
 	});
 
 	it("accepts {task.files} as a simple string too", function(done) {
 		this.timeout(5000);
+		ConsoleManager.saveLog(true);
 		const messages = [];
 		taskero.register({
 			name: "task:15",
@@ -588,11 +620,52 @@ describe("Taskero class", function() {
 			.then(function() {
 				expect(messages.length).to.equal(1);
 				expect(messages[0]).to.equal(__dirname + "/samples/sample1.txt");
+				ConsoleManager.recoverLog();
 				done();
 			})
 			.catch(function(error) {
 				console.log("Error:", error);
 				expect(true).to.equal(false);
 			});
+	});
+
+	it("can load taskero files from Taskero constructor", function(done) {
+		ConsoleManager.saveLog(true);
+		const taskero3 = new Taskero({
+			debug: false,
+			error: true,
+			files: __dirname + "/taskero.file.js"
+		});
+		taskero3.error(
+			"[tastero-test] Just for coverage purposes. Ignore this message."
+		);
+		expect("file:hello" in taskero3.tasksMap).to.equal(true);
+		expect("file:bye" in taskero3.tasksMap).to.equal(true);
+		const taskero4 = new Taskero({
+			files: [__dirname + "/taskero.file.js", __dirname + "/taskero.file-2.js"],
+			debug: false,
+			error: false
+		});
+		taskero4.error("[taskero-test] This message should not be ever seen.");
+		expect("file:hello" in taskero4.tasksMap).to.equal(true);
+		expect("file:bye" in taskero4.tasksMap).to.equal(true);
+		expect("file:2:hello" in taskero4.tasksMap).to.equal(true);
+		expect("file:2:bye" in taskero4.tasksMap).to.equal(true);
+		ConsoleManager.recoverLog();
+		done();
+	});
+
+	it("throws error when the taskero file demanded is not importable", function(done) {
+		var taskero5;
+		ConsoleManager.saveLog(true);
+		try {
+			taskero5 = new Taskero({
+				files: __dirname + "/taskero.file-not-exists.js"
+			});
+		} catch (exc) {
+			expect(exc.name).to.equal("Taskero:InvalidFileRequiredError");
+			ConsoleManager.recoverLog();
+			done();
+		}
 	});
 });
