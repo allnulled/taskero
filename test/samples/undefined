@@ -1,0 +1,44 @@
+{
+    "onEach": [],
+    "onDone": [
+        null
+    ],
+    "watch": false,
+    "name": "dumpJson",
+    "output": [
+        null
+    ],
+    "abbr1": [
+        null,
+        null,
+        null,
+        null
+    ],
+    "abbr2": [
+        null,
+        null,
+        null,
+        null,
+        null
+    ],
+    "abbr3": [
+        null
+    ],
+    "abbr4": [
+        null
+    ],
+    "abbr5": [
+        null
+    ],
+    "abbr6": [
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null
+    ]
+}

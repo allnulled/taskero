@@ -1,0 +1,44 @@
+{
+    "onEach": [],
+    "onDone": [
+        null
+    ],
+    "watch": false,
+    "name": "dumpJson",
+    "output": [
+        "my-dumped-json-2.json"
+    ],
+    "abbr1": [
+        "STARTING ARRAY",
+        "Hello",
+        "World",
+        "]"
+    ],
+    "abbr2": [
+        "STARTING OBJECT",
+        "@word1",
+        "Hello",
+        "World",
+        "}"
+    ],
+    "abbr3": [
+        -100.5
+    ],
+    "abbr4": [
+        false
+    ],
+    "abbr5": [
+        ":v:console.log(__dirname)"
+    ],
+    "abbr6": [
+        "STARTING ARRAY",
+        "STARTING ARRAY",
+        "STARTING ARRAY",
+        "one",
+        "]",
+        "two",
+        "]",
+        "three",
+        "]"
+    ]
+}

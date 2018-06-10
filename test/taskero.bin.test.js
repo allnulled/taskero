@@ -4,6 +4,7 @@ const deepEqual = require("deep-equal");
 const rimraf = require("rimraf");
 const { FunctionWrapper, ConsoleManager } = require("function-wrapper");
 const fs = require("fs-extra");
+const exec = require("execute-command-sync");
 
 describe("Taskero command-line tool", function() {
 	before(function() {
@@ -69,6 +70,8 @@ describe("Taskero command-line tool", function() {
 				done();
 			})
 			.catch(function() {
+				ConsoleManager.recoverLog();
+				console.log(error);
 				expect(true).to.equal(false);
 			});
 	});
@@ -96,6 +99,8 @@ describe("Taskero command-line tool", function() {
 				done();
 			})
 			.catch(function(error) {
+				ConsoleManager.recoverLog();
+				console.log(error);
 				expect(true).to.equal(false);
 			});
 	});
@@ -161,6 +166,7 @@ describe("Taskero command-line tool", function() {
 				done();
 			})
 			.catch(function(error) {
+				ConsoleManager.recoverLog();
 				console.log(error);
 			});
 	});
@@ -178,23 +184,69 @@ describe("Taskero command-line tool", function() {
 				done();
 			})
 			.catch(function(error) {
+				ConsoleManager.recoverLog();
 				console.log(error);
 			});
 	});
 	//
 	//
 	//
-	it("shows the help of the taskero command by default", function(done) {
-		//
-		expect(ConsoleManager.messages.length).to.equal(0);
-		ConsoleManager.saveLog(true);
-		console.log("Message 1");
-		console.log("Message 2");
-		console.log("Message 3");
-		expect(ConsoleManager.messages.length).to.equal(3);
-		ConsoleManager.recoverLog();
+	it.only("can customize parameters", function(done) {
 		ConsoleManager.clearMessages();
-		expect(ConsoleManager.messages.length).to.equal(0);
+		ConsoleManager.saveLog(false);
+		Taskero.execute(
+			`taskero run
+
+		--debug 
+
+		--files test/taskero.file.js test/taskero.file-2.js 
+
+		--name dumpJson
+		  --output my-dumped-json-1.json
+		  --arg1 [ :string:Hello :string:World ]
+		  --arg2 { @word1 :string:Hello @word2 :string:World }
+		  --arg3 :number:100.50
+		  --arg4 :boolean:true
+		  --arg5 :eval:console.log(__dirname)
+		  --arg6 [ [ [ :string:one ] :string:two ] :string:three ]
+
+		--name dumpJson
+			--output my-dumped-json-2.json
+		  --abbr1 [ :s:Hello :s:World ]
+		  --abbr2 { @word1 :s:Hello  :s:World }
+		  --abbr3 :n:-100.50
+		  --abbr4 :b:false
+		  --abbr5 :v:console.log(__dirname)
+		  --abbr6 [ [ [ :s:one ] :s:two ] :s:three ]
+		  `
+		)
+			.then(function() {
+				ConsoleManager.recoverLog();
+				expect(ConsoleManager.messages.length).to.not.equal(0);
+				const dumpedJsonFile =
+					__dirname + "/../test/samples/my-dumped-json-1.json";
+				const dumpedJsonFile2 =
+					__dirname + "/../test/samples/my-dumped-json-2.json";
+				expect(fs.existsSync(dumpedJsonFile)).to.equal(true);
+				expect(fs.existsSync(dumpedJsonFile2)).to.equal(true);
+				const data1 = JSON.parse(fs.readFileSync(dumpedJsonFile).toString());
+				//console.log(data1);
+				console.log();
+				const data2 = JSON.parse(fs.readFileSync(dumpedJsonFile2).toString());
+				//console.log(data2);
+				ConsoleManager.clearMessages();
+				done();
+			})
+			.catch(function(error) {
+				ConsoleManager.recoverLog();
+				console.log("ERROR!", error);
+			});
+	});
+	//
+	//
+	//
+	it("", function(done) {
+		//
 		done();
 	});
 	////////////////////////////////////////////////////////////////
