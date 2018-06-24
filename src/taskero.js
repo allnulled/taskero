@@ -148,22 +148,7 @@
  * changes, and so, you can forget about running the task: it will be run
  * automatically for you everytime a file is changed, or created, or removed.
  *
- *
- *
- *
- *
- *
- *
- *
- *
- *
- *
  * ## 3. API Reference
- *
- *
- *
- *
- *
  *
  */
 const globby = require(`globby`);
@@ -1111,10 +1096,6 @@ Explanation about the syntax:
 		WordsIteration: while (index < words.length) {
 			var word = words[index];
 			index++;
-			// console.log();
-			// console.log();
-			// console.log("State:", JSON.stringify(transformation, null, 3));
-			// console.log("Word:", word);
 			if (typeof execution === "undefined") {
 				if (~["run"].indexOf(word)) {
 					execution = word;
@@ -1224,10 +1205,6 @@ Explanation about the syntax:
 			}
 			transformation = Taskero.tipifyValues(transformation);
 		}
-		console.log(
-			"Transformation is now:",
-			JSON.stringify(transformation, null, 2)
-		);
 		return transformation;
 	}
 
@@ -1239,7 +1216,7 @@ Explanation about the syntax:
 			Object.keys(runItem).forEach(function(runItemKey) {
 				var runItemVal = runItem[runItemKey];
 				if (runItemVal instanceof Array) {
-					var newRunItemVal = [];
+					var newRunItemVal = undefined;
 					for (var index = 0; index < runItemVal.length; index++) {
 						var token = runItemVal[index];
 						var { tokenChanged, indexProgress } = Taskero.changeValue(
@@ -1247,20 +1224,23 @@ Explanation about the syntax:
 							index,
 							runItemVal
 						);
-						newRunItemVal.push(tokenChanged);
+						if (typeof newRunItemVal === "undefined") {
+							newRunItemVal = tokenChanged;
+						} else {
+							newRunItemVal = [].concat(newRunItemVal).concat(tokenChanged);
+						}
 						if (typeof indexProgress === "number" && indexProgress !== 0) {
 							index += indexProgress;
 						}
 					}
 					newRunItem[runItemKey] = newRunItemVal;
-					// newRunItem[runItemKey] = runItemVal;
 				} else {
 					newRunItem[runItemKey] = runItemVal;
 				}
 			});
 			run.push(newRunItem);
 		});
-		console.log("OUTPUTTTTTT", run);
+		//console.log("OUTPUT...:", run);
 		var out = Object.assign({}, inp, { run });
 		return out;
 	}
@@ -1272,22 +1252,109 @@ Explanation about the syntax:
 				indexProgress: 0
 			};
 		} else if (token === "[") {
-			// @TODO:
-			// @TODO:
-			// @TODO:
-			// @TODO:
+			var arrayClosedPosition = currentIndex;
+			var tempLevel = 0;
+			var tempIndex = 0;
+			SearchArrayClosedPosition: for (
+				tempIndex = currentIndex + 1;
+				tempIndex < tokenList.length;
+				tempIndex++
+			) {
+				var tokenItem = tokenList[tempIndex];
+				if (tokenItem === "[") {
+					tempLevel++;
+				} else if (tokenItem === "]" && tempLevel !== 0) {
+					tempLevel--;
+				} else if (tokenItem === "]" && tempLevel === 0) {
+					arrayClosedPosition = tempIndex;
+					break SearchArrayClosedPosition;
+				}
+			}
+			if (arrayClosedPosition === currentIndex) {
+				throw {
+					name: "TaskeroCLI:UnclosedArrayArgumentError",
+					message:
+						"Array unclosed approx. to: " +
+						tokenList.slice(currentIndex, tokenList.length)
+				};
+			}
+			var elementsArray = tokenList.slice(
+				currentIndex + 1,
+				arrayClosedPosition
+			);
+			var elementsOutput = [];
+			for (var a = 0; a < elementsArray.length; a++) {
+				var element = elementsArray[a];
+				var { tokenChanged, indexProgress } = Taskero.changeValue(
+					element,
+					a,
+					elementsArray
+				);
+				elementsOutput.push(tokenChanged);
+				if (typeof indexProgress === "number" && indexProgress !== 0) {
+					a += indexProgress;
+				}
+			}
 			return {
-				tokenChanged: "STARTING ARRAY",
-				indexProgress: 0
+				tokenChanged: elementsOutput,
+				indexProgress: arrayClosedPosition - currentIndex
 			};
 		} else if (token === "{") {
-			// @TODO:
-			// @TODO:
-			// @TODO:
-			// @TODO:
+			var arrayClosedPosition = currentIndex;
+			var tempLevel = 0;
+			var tempIndex = 0;
+			SearchArrayClosedPosition: for (
+				tempIndex = currentIndex + 1;
+				tempIndex < tokenList.length;
+				tempIndex++
+			) {
+				var tokenItem = tokenList[tempIndex];
+				if (tokenItem === "[") {
+					tempLevel++;
+				} else if (tokenItem === "}" && tempLevel !== 0) {
+					tempLevel--;
+				} else if (tokenItem === "}" && tempLevel === 0) {
+					arrayClosedPosition = tempIndex;
+					break SearchArrayClosedPosition;
+				}
+			}
+			if (arrayClosedPosition === currentIndex) {
+				throw {
+					name: "TaskeroCLI:UnclosedObjectArgumentError",
+					message:
+						"Object unclosed approx. to: " +
+						tokenList.slice(currentIndex, tokenList.length)
+				};
+			}
+			var elementsArray = tokenList.slice(
+				currentIndex + 1,
+				arrayClosedPosition
+			);
+			var elementsOutput = {};
+			var elementsOutputKey = undefined;
+			for (var a = 0; a < elementsArray.length; a++) {
+				var element = elementsArray[a];
+				if(element.startsWith("@")) {
+					elementsOutputKey = element.substr(1);
+				} else {
+					var { tokenChanged, indexProgress } = Taskero.changeValue(
+						element,
+						a,
+						elementsArray
+					);
+					if((!(elementsOutputKey in elementsOutput)) || (typeof(elementsOutput[elementsOutputKey]) === "undefined")) {
+						elementsOutput[elementsOutputKey] = tokenChanged;
+					} else {
+						elementsOutput[elementsOutputKey] = [].concat(elementsOutput[elementsOutputKey]).concat(tokenChanged);
+					}
+					if (typeof indexProgress === "number" && indexProgress !== 0) {
+						a += indexProgress;
+					}
+				}
+			}
 			return {
-				tokenChanged: "STARTING OBJECT",
-				indexProgress: 0
+				tokenChanged: elementsOutput,
+				indexProgress: arrayClosedPosition - currentIndex
 			};
 		} else if (token.startsWith(":string:") || token.startsWith(":s:")) {
 			return {
@@ -1298,9 +1365,7 @@ Explanation about the syntax:
 			var numb = token.replace(/^(\:number\:|\:n\:)/g, "");
 			try {
 				numb = parseFloat(numb);
-			} catch (exc) {
-				// @ERROR
-			}
+			} catch (exc) {}
 			return {
 				tokenChanged: numb,
 				indexProgress: 0
@@ -1324,14 +1389,6 @@ Explanation about the syntax:
 		}
 	}
 }
-
-/*
-TaskeroCLI:UnclosedArray
-TaskeroCLI:UnclosedObject
-TaskeroCLI:InvalidBoolean
-TaskeroCLI:InvalidNumber
-TaskeroCLI:InvalidObjectFormat
-*/
 
 module.exports = { Taskero };
 

@@ -9,10 +9,10 @@
         "my-dumped-json-2.json"
     ],
     "abbr1": [
-        "STARTING ARRAY",
-        "Hello",
-        "World",
-        "]"
+        [
+            "Hello",
+            "World"
+        ]
     ],
     "abbr2": [
         "STARTING OBJECT",
@@ -22,7 +22,8 @@
         "}"
     ],
     "abbr3": [
-        -100.5
+        -100.5,
+        50
     ],
     "abbr4": [
         false
@@ -31,14 +32,13 @@
         ":v:console.log(__dirname)"
     ],
     "abbr6": [
-        "STARTING ARRAY",
-        "STARTING ARRAY",
-        "STARTING ARRAY",
-        "one",
-        "]",
-        "two",
-        "]",
-        "three",
-        "]"
+        [
+            "one",
+            1,
+            "two",
+            2,
+            "three",
+            3
+        ]
     ]
 }

@@ -30,7 +30,7 @@ This is a quite useless task.`
 taskero.register({
 	name: "file:2:dump",
 	onDone: function(done, files, args) {
-		require("fs").writeFileSync(args.dumpFile[0], args.dumpContents[0], "utf8");
+		require("fs").writeFileSync(args.dumpFile, args.dumpContents, "utf8");
 		done();
 	},
 	metadata: {

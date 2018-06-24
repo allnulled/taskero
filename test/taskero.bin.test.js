@@ -125,8 +125,8 @@ describe("Taskero command-line tool", function() {
 				run: [
 					{
 						name: "some:task",
-						arg1: ["something"],
-						arg2: ["something else"]
+						arg1: "something",
+						arg2: "something else"
 					}
 				]
 			})
@@ -191,7 +191,7 @@ describe("Taskero command-line tool", function() {
 	//
 	//
 	//
-	it.only("can customize parameters", function(done) {
+	it("can customize parameters", function(done) {
 		ConsoleManager.clearMessages();
 		ConsoleManager.saveLog(false);
 		Taskero.execute(
@@ -204,20 +204,18 @@ describe("Taskero command-line tool", function() {
 		--name dumpJson
 		  --output my-dumped-json-1.json
 		  --arg1 [ :string:Hello :string:World ]
-		  --arg2 { @word1 :string:Hello @word2 :string:World }
-		  --arg3 :number:100.50
-		  --arg4 :boolean:true
-		  --arg5 :eval:console.log(__dirname)
-		  --arg6 [ [ [ :string:one ] :string:two ] :string:three ]
+		  --arg2 { @word1 :string:Hello :string:present @word2 :string:World :string:future  @word3 :string:ok }
+		  --arg3 :number:100.50 :number:50
+		  --arg4 :boolean:false
+		  --arg5 [ [ [ :string:one :number:1 ] :string:two :number:2 ] :string:three :number:3 ]
 
 		--name dumpJson
 			--output my-dumped-json-2.json
 		  --abbr1 [ :s:Hello :s:World ]
-		  --abbr2 { @word1 :s:Hello  :s:World }
-		  --abbr3 :n:-100.50
+		  --abbr2 { @word1 :s:Hello :s:present @word2 :s:World :s:future @word3 :s:ok }
+		  --abbr3 :n:-100.50 :n:50
 		  --abbr4 :b:false
-		  --abbr5 :v:console.log(__dirname)
-		  --abbr6 [ [ [ :s:one ] :s:two ] :s:three ]
+		  --abbr5 [ [ [ :s:one :n:1 ] :s:two :n:2 ] :s:three :n:3 ]
 		  `
 		)
 			.then(function() {

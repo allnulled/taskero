@@ -9,10 +9,10 @@
         "my-dumped-json-1.json"
     ],
     "arg1": [
-        "STARTING ARRAY",
-        "Hello",
-        "World",
-        "]"
+        [
+            "Hello",
+            "World"
+        ]
     ],
     "arg2": [
         "STARTING OBJECT",
@@ -32,14 +32,10 @@
         ":eval:console.log(__dirname)"
     ],
     "arg6": [
-        "STARTING ARRAY",
-        "STARTING ARRAY",
-        "STARTING ARRAY",
-        "one",
-        "]",
-        "two",
-        "]",
-        "three",
-        "]"
+        [
+            "one",
+            "two",
+            "three"
+        ]
     ]
 }
