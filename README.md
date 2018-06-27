@@ -384,7 +384,11 @@ By default: `{persist: true}`.
 
 **Parameter:** `{Array<Object>} tasks`. Set of tasks to be run. They will be
 executed one after the other. The object will override the one passed to
-the task registration.
+the registered task (that has the same name). The objects inside this
+array, so, are the same as the ones defined in the registration: Taskero
+tasks. The parameters added or overriden, are only overriden for the
+execution. This lets the user to refer to different files, but take some
+default files, for example.
 
 
 **Returns:** `{Promise}`. To chain the `then(~)` and `catch(~)` calls.
@@ -430,13 +434,94 @@ a synchronous way).
 **Type:** `{Function}`.
 
 
-**Parameters:** `{none}`.
+**Parameters:** `{Any:message,...}`.
 
 
 **Returns:** `{void}`.
 
 
 **Description:** Logs the provided messages, only if the `Taskero#options.debug` is set to `true`.
+
+
+
+
+ 
+
+
+----
+
+### `Taskero#error(Any:message,...)`
+
+
+**Type:** `{Function}`.
+
+
+**Parameters:** `{Any:message,...}`.
+
+
+**Returns:** `{void}`.
+
+
+**Description:** Logs the provided messages, only if the `Taskero#options.error` is set to `true` (which by default, it is).
+
+
+
+
+ 
+
+
+----
+
+### `Taskero.execute()`
+
+### `Taskero.execute(Array<String>:command)`
+
+### `Taskero.execute(String:command)`
+
+
+**Type:** `{Function}`.
+
+
+**Parameters:** `{Array<String>:command | String:command | void}`. Commands to execute. It can be
+an array of strings (like `process.argv`), a normal string (as the input of the command-line)
+or nothing at all (in which case, the `process.argv` is taken as parameter).
+
+
+**Returns:** `{void}`.
+
+
+**Description:** Executes a specific command, as a normal command-line tool would.
+
+
+
+
+
+ 
+
+
+----
+
+### `Taskero.transformCommands()`
+
+### `Taskero.transformCommands(Array<String>:command)`
+
+### `Taskero.transformCommands(String:command)`
+
+
+**Type:** `{Function}`.
+
+
+**Parameters:** `{Array<String>:command | String:command | void}`. Commands to execute. It can be
+an array of strings (like `process.argv`), a normal string (as the input of the command-line)
+or nothing at all (in which case, the `process.argv` is taken as parameter).
+
+
+**Returns:** `{void}`.
+
+
+**Description:** Executes a specific command, as a normal command-line tool would.
+
+
 
 
 
@@ -468,13 +553,21 @@ Yes, they are cool.
 
 But:
 
-- Webpack, which was the coolest, complicated things too much.
+- **Webpack**, which was the coolest, complicated things too much.
 
-- Grunt, which was my favourite, lacks of parametrization.
+ (I only need to listen for changes, and do things, I do not
+ want to change the way I code for a task-automation tool!)
 
-- Gulp, which was very promising, has a strange API.
+- **Grunt**, which was my favourite, lacks of parametrization.
 
+ (And with it, the watchers functionality...)
 
+- **Gulp**, which was very promising, has a strange API.
+
+ (I need flexibility, I can sacrifice a bit of beauty in
+ coding, but I need absolute transparence and flexibility,
+ and also parametrization was not contemplated, and so, the
+ watchers functionality...)
 
 ## 6. Problems
 
@@ -497,7 +590,7 @@ my own tools for my developments.
 
 ## 7. Conclusions
 
-In conclusion, `Taskero` is a project that aims to ease the tasks
+In conclusion, **`Taskero`** is a project that aims to ease the tasks
 automation, which is a very fundamental part of any software
 development project, and which takes a lot of time in development.
 
@@ -505,6 +598,9 @@ Also, I wanted to give more open source projects, I can not compite
 against companies, or engineers, but... maybe I can provide something
 interesting to them, despite not having a job yet. I do not know.
 
+In fact, I do not want to compite. But it is your language.
+
+This is how you have been programmed. Deeply sad, tbh.
 
 
 
