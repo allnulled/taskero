@@ -16,6 +16,7 @@ describe("Taskero class", function() {
 	var TaskeroAPI, Taskero, taskero;
 
 	before(function() {
+		rimraf.sync(`${__dirname}/samples/*`);
 		ConsoleManager.saveLog(true);
 		utils.dump(__dirname + "/samples/sample1.txt", "sample1.txt", "utf8");
 		utils.dump(__dirname + "/samples/sample2.txt", "sample2.txt", "utf8");
@@ -28,7 +29,9 @@ describe("Taskero class", function() {
 		utils.remove(__dirname + "/samples/output-from-watch.txt");
 	});
 
-	after(function() {});
+	after(function() {
+		rimraf.sync(`${__dirname}/samples/*`);
+	});
 
 	it("is retrievable", function(done) {
 		this.timeout(10000);
