@@ -970,16 +970,16 @@ Explanation about the syntax:
     · It specifies the name of the task, and the parameters it must receive.
     · The 'parameter-values' have their own syntax.
     
-    Parameter-values syntax:
+    Parameter-values syntax: 
 
-      :string {text} 
-      :boolean true 
-      :boolean false
-      :number {number}
-      :object [@key {parameter-value}]*
-      :array [{parameter-value}]*
+      :string:~ | :s:~          = {string} = "~"
+      :boolean:true | :b:true   = {boolean} = true
+      :boolean:false | :b:false = {boolean} = false
+      :number:~ | :n:~          = {number} = ~
+      { @~ ~ @~ ~ }             = {object} = { @~: ~, @~: ~ }
+      [ ~ ~ ~ ~ ~ ]             = {array} = [ ~, ~, ~, ~, ~ ]
     
-    By default, ":string" is understood.
+    By default, ":string:" is set.
 
 ======================================
 `);
@@ -1068,21 +1068,21 @@ Explanation about the syntax:
 				--name # name: "jsx:compile"
 					"jsx:compile"
 				--arg1 # arg1: [1,2,3,"@ this parameter starts with @"]
-					"number:1"
-					"number:2"
-					"number:3"
+					":number:1"
+					":number:2"
+					":number:3"
 					"string:-- this parameter starts with --"
 				--arg2 # arg2: ["default", "default1", "default2"]
 					"default"
 					"default1"
 					"default2"
 				--arg3
-					"number:1"
-					"number:2"
-					"number:3"
-					"string:@@@@ for 3 @ at the begining, and so on"
+					":number:1"
+					":number:2"
+					":number:3"
+					":string:@@@@ for 3 @ at the begining, and so on"
 				--watch # watch: false (overrides the previous --watch)
-					boolean:false
+					":boolean:false"
 				--watch 
 
 		//*/
