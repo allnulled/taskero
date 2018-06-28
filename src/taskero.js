@@ -156,6 +156,7 @@ const async = require(`async`);
 const path = require(`path`);
 const chokidar = require("chokidar");
 const fs = require(`fs-extra`);
+const Clitoris = require("clitoris").Clitoris;
 
 /**
  *
@@ -1084,11 +1085,7 @@ Explanation about the syntax:
 				--watch # watch: false (overrides the previous --watch)
 					":boolean:false"
 				--watch 
-
 		//*/
-		//
-		// @TODO: transform (objectualize) parameters passed
-		//
 		var index = 0;
 		var execution = undefined;
 		var lastCommand = undefined;
@@ -1210,30 +1207,13 @@ Explanation about the syntax:
 
 	static tipifyValues(inp) {
 		var run = [];
-
 		inp.run.forEach(function(runItem) {
 			var newRunItem = {};
 			Object.keys(runItem).forEach(function(runItemKey) {
 				var runItemVal = runItem[runItemKey];
 				if (runItemVal instanceof Array) {
-					var newRunItemVal = undefined;
-					for (var index = 0; index < runItemVal.length; index++) {
-						var token = runItemVal[index];
-						var { tokenChanged, indexProgress } = Taskero.changeValue(
-							token,
-							index,
-							runItemVal
-						);
-						if (typeof newRunItemVal === "undefined") {
-							newRunItemVal = tokenChanged;
-						} else {
-							newRunItemVal = [].concat(newRunItemVal).concat(tokenChanged);
-						}
-						if (typeof indexProgress === "number" && indexProgress !== 0) {
-							index += indexProgress;
-						}
-					}
-					newRunItem[runItemKey] = newRunItemVal;
+					// Powered by Clitoris:
+					newRunItem[runItemKey] = Clitoris.parse(runItemVal);
 				} else {
 					newRunItem[runItemKey] = runItemVal;
 				}
@@ -1241,152 +1221,9 @@ Explanation about the syntax:
 			run.push(newRunItem);
 		});
 		//console.log("OUTPUT...:", run);
+		//*/
 		var out = Object.assign({}, inp, { run });
 		return out;
-	}
-
-	static changeValue(token, currentIndex, tokenList) {
-		if (typeof token !== "string") {
-			return {
-				tokenChanged: token,
-				indexProgress: 0
-			};
-		} else if (token === "[") {
-			var arrayClosedPosition = currentIndex;
-			var tempLevel = 0;
-			var tempIndex = 0;
-			SearchArrayClosedPosition: for (
-				tempIndex = currentIndex + 1;
-				tempIndex < tokenList.length;
-				tempIndex++
-			) {
-				var tokenItem = tokenList[tempIndex];
-				if (tokenItem === "[") {
-					tempLevel++;
-				} else if (tokenItem === "]" && tempLevel !== 0) {
-					tempLevel--;
-				} else if (tokenItem === "]" && tempLevel === 0) {
-					arrayClosedPosition = tempIndex;
-					break SearchArrayClosedPosition;
-				}
-			}
-			if (arrayClosedPosition === currentIndex) {
-				throw {
-					name: "TaskeroCLI:UnclosedArrayArgumentError",
-					message:
-						"Array unclosed approx. to: " +
-						tokenList.slice(currentIndex, tokenList.length)
-				};
-			}
-			var elementsArray = tokenList.slice(
-				currentIndex + 1,
-				arrayClosedPosition
-			);
-			var elementsOutput = [];
-			for (var a = 0; a < elementsArray.length; a++) {
-				var element = elementsArray[a];
-				var { tokenChanged, indexProgress } = Taskero.changeValue(
-					element,
-					a,
-					elementsArray
-				);
-				elementsOutput.push(tokenChanged);
-				if (typeof indexProgress === "number" && indexProgress !== 0) {
-					a += indexProgress;
-				}
-			}
-			return {
-				tokenChanged: elementsOutput,
-				indexProgress: arrayClosedPosition - currentIndex
-			};
-		} else if (token === "{") {
-			var arrayClosedPosition = currentIndex;
-			var tempLevel = 0;
-			var tempIndex = 0;
-			SearchArrayClosedPosition: for (
-				tempIndex = currentIndex + 1;
-				tempIndex < tokenList.length;
-				tempIndex++
-			) {
-				var tokenItem = tokenList[tempIndex];
-				if (tokenItem === "[") {
-					tempLevel++;
-				} else if (tokenItem === "}" && tempLevel !== 0) {
-					tempLevel--;
-				} else if (tokenItem === "}" && tempLevel === 0) {
-					arrayClosedPosition = tempIndex;
-					break SearchArrayClosedPosition;
-				}
-			}
-			if (arrayClosedPosition === currentIndex) {
-				throw {
-					name: "TaskeroCLI:UnclosedObjectArgumentError",
-					message:
-						"Object unclosed approx. to: " +
-						tokenList.slice(currentIndex, tokenList.length)
-				};
-			}
-			var elementsArray = tokenList.slice(
-				currentIndex + 1,
-				arrayClosedPosition
-			);
-			var elementsOutput = {};
-			var elementsOutputKey = undefined;
-			for (var a = 0; a < elementsArray.length; a++) {
-				var element = elementsArray[a];
-				if(element.startsWith("@")) {
-					elementsOutputKey = element.substr(1);
-				} else {
-					var { tokenChanged, indexProgress } = Taskero.changeValue(
-						element,
-						a,
-						elementsArray
-					);
-					if((!(elementsOutputKey in elementsOutput)) || (typeof(elementsOutput[elementsOutputKey]) === "undefined")) {
-						elementsOutput[elementsOutputKey] = tokenChanged;
-					} else {
-						elementsOutput[elementsOutputKey] = [].concat(elementsOutput[elementsOutputKey]).concat(tokenChanged);
-					}
-					if (typeof indexProgress === "number" && indexProgress !== 0) {
-						a += indexProgress;
-					}
-				}
-			}
-			return {
-				tokenChanged: elementsOutput,
-				indexProgress: arrayClosedPosition - currentIndex
-			};
-		} else if (token.startsWith(":string:") || token.startsWith(":s:")) {
-			return {
-				tokenChanged: token.replace(/^(\:string\:|\:s\:)/g, ""),
-				indexProgress: 0
-			};
-		} else if (token.startsWith(":number:") || token.startsWith(":n:")) {
-			var numb = token.replace(/^(\:number\:|\:n\:)/g, "");
-			try {
-				numb = parseFloat(numb);
-			} catch (exc) {}
-			return {
-				tokenChanged: numb,
-				indexProgress: 0
-			};
-		} else if (token.startsWith(":boolean:") || token.startsWith(":b:")) {
-			var b = token.replace(/^(\:boolean\:|\:b\:)/g, "");
-			if (b === "false") {
-				b = false;
-			} else if (b === "true") {
-				b = true;
-			}
-			return {
-				tokenChanged: b,
-				indexProgress: 0
-			};
-		} else {
-			return {
-				tokenChanged: token,
-				indexProgress: 0
-			};
-		}
 	}
 }
 
