@@ -8,10 +8,10 @@ const exec = require("execute-command-sync");
 
 describe("Taskero command-line tool", function() {
 	before(function() {
-		rimraf.sync(`${__dirname}/samples/dump.txt`);
+		rimraf.sync(`${__dirname}/samples/*`);
 	});
 	after(function() {
-		//
+		rimraf.sync(`${__dirname}/samples/*`);
 	});
 	//
 	//
@@ -193,6 +193,10 @@ describe("Taskero command-line tool", function() {
 	//
 	it("can customize parameters", function(done) {
 		ConsoleManager.clearMessages();
+    const dumpedJsonFile = __dirname + "/../test/samples/my-dumped-json-1.json";
+    const dumpedJsonFile2 = __dirname + "/../test/samples/my-dumped-json-2.json";
+		expect(fs.existsSync(dumpedJsonFile)).to.equal(false);
+		expect(fs.existsSync(dumpedJsonFile2)).to.equal(false);
 		ConsoleManager.saveLog(false);
 		Taskero.execute(
 			`taskero run
@@ -221,10 +225,6 @@ describe("Taskero command-line tool", function() {
 			.then(function() {
 				ConsoleManager.recoverLog();
 				expect(ConsoleManager.messages.length).to.not.equal(0);
-				const dumpedJsonFile =
-					__dirname + "/../test/samples/my-dumped-json-1.json";
-				const dumpedJsonFile2 =
-					__dirname + "/../test/samples/my-dumped-json-2.json";
 				expect(fs.existsSync(dumpedJsonFile)).to.equal(true);
 				expect(fs.existsSync(dumpedJsonFile2)).to.equal(true);
 				const data1 = JSON.parse(fs.readFileSync(dumpedJsonFile).toString());

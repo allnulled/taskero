@@ -4,7 +4,7 @@
 # Taskero
 
 
-![](https://img.shields.io/badge/taskero-v1.0.0-green.svg) ![](https://img.shields.io/badge/test-passing-green.svg) ![](https://img.shields.io/badge/coverage-100%25-green.svg) ![](https://img.shields.io/badge/stable-90%25-orange.svg)
+![](https://img.shields.io/badge/taskero-v1.0.0-green.svg) ![](https://img.shields.io/badge/test-passing-green.svg) ![](https://img.shields.io/badge/coverage-100%25-green.svg) ![](https://img.shields.io/badge/stable-92.25%25-green.svg)
 
 
 Task automation tool with special focus on: asynchronicity, parameterization and automatic watches functionality.
@@ -149,22 +149,7 @@ handy in order to reuse a task in watcher mode.
 changes, and so, you can forget about running the task: it will be run
 automatically for you everytime a file is changed, or created, or removed.
 
-
-
-
-
-
-
-
-
-
-
 ## 3. API Reference
-
-
-
-
-
 
 
 
@@ -556,11 +541,15 @@ But:
 - **Webpack**, which was the coolest, complicated things too much.
 
  (I only need to listen for changes, and do things, I do not
- want to change the way I code for a task-automation tool!)
+ want to change the way I code for a task-automation tool!
+ The less, the better: that is programming for me in a 70%
+ of the cases, for lots of reasons.)
 
 - **Grunt**, which was my favourite, lacks of parametrization.
 
- (And with it, the watchers functionality...)
+ (And with it, the watchers functionality... but it was the
+ main reference I took, it was the easiest to understand, and
+ the one with more flexibility.)
 
 - **Gulp**, which was very promising, has a strange API.
 
@@ -586,7 +575,6 @@ them selectively, depending on which part of the project I am
 working on. I do not know. I want to think that I am not losing my
 time working on tools like this one. In the end, I am already using
 my own tools for my developments.
-
 
 ## 7. Conclusions
 
