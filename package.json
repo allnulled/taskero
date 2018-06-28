@@ -32,8 +32,7 @@
   "dependencies": {
     "async": "^2.6.1",
     "chokidar": "^2.0.3",
-    "console.table": "^0.10.0",
-    "dateformat": "^3.0.3",
+    "clitoris": "^1.0.0",
     "globby": "^8.0.1",
     "string-argv": "0.0.2",
     "yargs": "^11.0.0"
