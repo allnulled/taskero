@@ -718,7 +718,7 @@ class Taskero {
 							task.files,
 							Object.assign({ persistent: true }, task.watchOptions || {})
 						);
-						watcher.on("all", function(event, fileChanged) {
+						watcher.on("change", function(event, fileChanged) {
 							var date = new Date();
 							var dateYear = date.getFullYear();
 							var dateMonth = "" + (date.getMonth() + 1);
@@ -763,6 +763,7 @@ class Taskero {
 						thisInstance.error(`[taskero] Error thrown by task.`, errorTask);
 						return rejectRun.call(thisInstance, errorTask);
 					} else {
+						// @TODO: onEnd:
 						thisInstance.debug(
 							`[taskero] All the tasks were done successfully!`
 						);
