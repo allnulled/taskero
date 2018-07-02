@@ -3,7 +3,7 @@
  * # Taskero
  *
  *
- * ![](https://img.shields.io/badge/taskero-v1.0.2-green.svg) ![](https://img.shields.io/badge/test-passing-green.svg) ![](https://img.shields.io/badge/coverage-100%25-green.svg) ![](https://img.shields.io/badge/stable-92.25%25-green.svg)
+ * ![](https://img.shields.io/badge/taskero-v1.0.3-green.svg) ![](https://img.shields.io/badge/test-passing-green.svg) ![](https://img.shields.io/badge/coverage-100%25-green.svg) ![](https://img.shields.io/badge/stable-92.25%25-green.svg)
  *
  *
  * Task automation tool with special focus on: asynchronicity, parameterization and automatic watches functionality.
@@ -718,7 +718,7 @@ class Taskero {
 							task.files,
 							Object.assign({ persistent: true }, task.watchOptions || {})
 						);
-						watcher.on("all", function(event, fileChanged) {
+						watcher.on("change", function(event, fileChanged) {
 							var date = new Date();
 							var dateYear = date.getFullYear();
 							var dateMonth = "" + (date.getMonth() + 1);
@@ -763,6 +763,7 @@ class Taskero {
 						thisInstance.error(`[taskero] Error thrown by task.`, errorTask);
 						return rejectRun.call(thisInstance, errorTask);
 					} else {
+						// @TODO: onEnd:
 						thisInstance.debug(
 							`[taskero] All the tasks were done successfully!`
 						);
