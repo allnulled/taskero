@@ -4,13 +4,14 @@ const deepEqual = require("deep-equal");
 const rimraf = require("rimraf");
 const { FunctionWrapper, ConsoleManager } = require("function-wrapper");
 const fs = require("fs-extra");
+const exec = require("execute-command-sync");
 
 describe("Taskero command-line tool", function() {
 	before(function() {
-		rimraf.sync(`${__dirname}/samples/dump.txt`);
+		rimraf.sync(`${__dirname}/samples/*`);
 	});
 	after(function() {
-		//
+		rimraf.sync(`${__dirname}/samples/*`);
 	});
 	//
 	//
@@ -69,6 +70,8 @@ describe("Taskero command-line tool", function() {
 				done();
 			})
 			.catch(function() {
+				ConsoleManager.recoverLog();
+				console.log(error);
 				expect(true).to.equal(false);
 			});
 	});
@@ -96,6 +99,8 @@ describe("Taskero command-line tool", function() {
 				done();
 			})
 			.catch(function(error) {
+				ConsoleManager.recoverLog();
+				console.log(error);
 				expect(true).to.equal(false);
 			});
 	});
@@ -120,8 +125,8 @@ describe("Taskero command-line tool", function() {
 				run: [
 					{
 						name: "some:task",
-						arg1: ["something"],
-						arg2: ["something else"]
+						arg1: "something",
+						arg2: "something else"
 					}
 				]
 			})
@@ -161,6 +166,7 @@ describe("Taskero command-line tool", function() {
 				done();
 			})
 			.catch(function(error) {
+				ConsoleManager.recoverLog();
 				console.log(error);
 			});
 	});
@@ -178,23 +184,67 @@ describe("Taskero command-line tool", function() {
 				done();
 			})
 			.catch(function(error) {
+				ConsoleManager.recoverLog();
 				console.log(error);
 			});
 	});
 	//
 	//
 	//
-	it("shows the help of the taskero command by default", function(done) {
-		//
-		expect(ConsoleManager.messages.length).to.equal(0);
-		ConsoleManager.saveLog(true);
-		console.log("Message 1");
-		console.log("Message 2");
-		console.log("Message 3");
-		expect(ConsoleManager.messages.length).to.equal(3);
-		ConsoleManager.recoverLog();
+	it("can customize parameters", function(done) {
 		ConsoleManager.clearMessages();
-		expect(ConsoleManager.messages.length).to.equal(0);
+    const dumpedJsonFile = __dirname + "/../test/samples/my-dumped-json-1.json";
+    const dumpedJsonFile2 = __dirname + "/../test/samples/my-dumped-json-2.json";
+		expect(fs.existsSync(dumpedJsonFile)).to.equal(false);
+		expect(fs.existsSync(dumpedJsonFile2)).to.equal(false);
+		ConsoleManager.saveLog(false);
+		Taskero.execute(
+			`taskero run
+
+		--debug 
+
+		--files test/taskero.file.js test/taskero.file-2.js 
+
+		--name dumpJson
+		  --output my-dumped-json-1.json
+		  --arg1 [ :string:Hello :string:World ]
+		  --arg2 { @word1 :string:Hello :string:present @word2 :string:World :string:future  @word3 :string:ok }
+		  --arg3 :number:100.50 :number:50
+		  --arg4 :boolean:false
+		  --arg5 [ [ [ :string:one :number:1 ] :string:two :number:2 ] :string:three :number:3 ]
+
+		--name dumpJson
+			--output my-dumped-json-2.json
+		  --abbr1 [ :s:Hello :s:World ]
+		  --abbr2 { @word1 :s:Hello :s:present @word2 :s:World :s:future @word3 :s:ok }
+		  --abbr3 :n:-100.50 :n:50
+		  --abbr4 :b:false
+		  --abbr5 [ [ [ :s:one :n:1 ] :s:two :n:2 ] :s:three :n:3 ]
+		  `
+		)
+			.then(function() {
+				ConsoleManager.recoverLog();
+				expect(ConsoleManager.messages.length).to.not.equal(0);
+				expect(fs.existsSync(dumpedJsonFile)).to.equal(true);
+				expect(fs.existsSync(dumpedJsonFile2)).to.equal(true);
+				const data1 = JSON.parse(fs.readFileSync(dumpedJsonFile).toString());
+				//console.log(data1);
+				console.log();
+				const data2 = JSON.parse(fs.readFileSync(dumpedJsonFile2).toString());
+				//console.log(data2);
+				ConsoleManager.clearMessages();
+				done();
+			})
+			.catch(function(error) {
+				ConsoleManager.recoverLog();
+				console.log("ERROR!", error);
+			});
+	});
+	//
+	//
+	//
+	it("", function(done) {
+		//
 		done();
 	});
 	////////////////////////////////////////////////////////////////

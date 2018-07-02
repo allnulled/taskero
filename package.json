@@ -1,6 +1,6 @@
 {
   "name": "taskero",
-  "version": "1.0.1",
+  "version": "1.0.2",
   "description":
     "Task automation tool with special focus on: asynchronicity, parameterization and automatic watches functionality.",
   "main": "src/taskero.js",
@@ -13,6 +13,9 @@
     "test-nocov": "mocha test/*.test.js --bail",
     "test-nocov-nostop": "mocha test/*.test.js",
     "docs": "javadoc -i src/taskero.js -o README.md -f markdown"
+  },
+  "bin": {
+    "taskero": "bin/taskero.bin.js"
   },
   "author": "",
   "license": "ISC",
@@ -31,8 +34,7 @@
   "dependencies": {
     "async": "^2.6.1",
     "chokidar": "^2.0.3",
-    "console.table": "^0.10.0",
-    "dateformat": "^3.0.3",
+    "clitoris": "^1.0.0",
     "globby": "^8.0.1",
     "string-argv": "0.0.2",
     "yargs": "^11.0.0"

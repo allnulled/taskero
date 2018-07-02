@@ -3,7 +3,7 @@
  * # Taskero
  *
  *
- * ![](https://img.shields.io/badge/taskero-v1.0.0-green.svg) ![](https://img.shields.io/badge/test-passing-green.svg) ![](https://img.shields.io/badge/coverage-100%25-green.svg) ![](https://img.shields.io/badge/stable-90%25-orange.svg)
+ * ![](https://img.shields.io/badge/taskero-v1.0.3-green.svg) ![](https://img.shields.io/badge/test-passing-green.svg) ![](https://img.shields.io/badge/coverage-100%25-green.svg) ![](https://img.shields.io/badge/stable-92.25%25-green.svg)
  *
  *
  * Task automation tool with special focus on: asynchronicity, parameterization and automatic watches functionality.
@@ -148,31 +148,15 @@
  * changes, and so, you can forget about running the task: it will be run
  * automatically for you everytime a file is changed, or created, or removed.
  *
- *
- *
- *
- *
- *
- *
- *
- *
- *
- *
  * ## 3. API Reference
- *
- *
- *
- *
- *
  *
  */
 const globby = require(`globby`);
 const async = require(`async`);
 const path = require(`path`);
 const chokidar = require("chokidar");
-const dateformat = require("dateformat");
 const fs = require(`fs-extra`);
-const consoleTable = require("console.table");
+const Clitoris = require("clitoris").Clitoris;
 
 /**
  *
@@ -273,12 +257,12 @@ class Taskero {
 			try {
 				thisInstance.tasksMap = Object.assign(
 					thisInstance.tasksMap,
-					require(file).tasksMap
+					require(path.resolve(file)).tasksMap
 				);
 			} catch (exc) {
 				throw {
 					name: "Taskero:InvalidFileRequiredError",
-					message: "Invalid Taskero file was required."
+					message: `Invalid Taskero file ${path.resolve(file)} was required.`
 				};
 			}
 		});
@@ -734,12 +718,32 @@ class Taskero {
 							task.files,
 							Object.assign({ persistent: true }, task.watchOptions || {})
 						);
-						watcher.on("all", function(event, fileChanged) {
+						watcher.on("change", function(event, fileChanged) {
+							var date = new Date();
+							var dateYear = date.getFullYear();
+							var dateMonth = "" + (date.getMonth() + 1);
+							var dateDay = "" + date.getDate();
+							var dateHour = "" + date.getHours();
+							var dateMinute = "" + date.getMinutes();
+							var dateSeconds = "" + date.getSeconds();
+							var dateMilliseconds = "" + date.getMilliseconds();
+							if (dateMonth.length > 2) {
+								dateMonth = "0" + dateMonth;
+							}
+							if (dateDay.length > 2) {
+								dateDay = "0" + dateDay;
+							}
+							if (dateHour.length > 2) {
+								dateHour = "0" + dateHour;
+							}
+							if (dateMinute.length > 2) {
+								dateMinute = "0" + dateMinute;
+							}
+							if (dateSeconds.length > 2) {
+								dateSeconds = "0" + dateSeconds;
+							}
 							console.log(
-								`[taskero] ${dateformat(
-									new Date(),
-									"yyyy/mm/dd hh:MM:ss.l"
-								)}: Event "${event}" detected on file ${fileChanged}.`
+								`[taskero] ${dateYear}/${dateMonth}/${dateDay} ${dateHour}:${dateMinute}:${dateSeconds}.${dateMilliseconds}: Event "${event}" detected on file ${fileChanged}.`
 							);
 							startTask(true);
 						});
@@ -759,6 +763,7 @@ class Taskero {
 						thisInstance.error(`[taskero] Error thrown by task.`, errorTask);
 						return rejectRun.call(thisInstance, errorTask);
 					} else {
+						// @TODO: onEnd:
 						thisInstance.debug(
 							`[taskero] All the tasks were done successfully!`
 						);
@@ -855,8 +860,10 @@ class Taskero {
 		var runCommands = undefined;
 		if (typeof commandParameter === "string") {
 			runCommands = Taskero.transformCommands(commandParameter);
-		} else {
+		} else if (commandParameter) {
 			runCommands = commandParameter;
+		} else {
+			runCommands = Taskero.transformCommands(process.argv);
 		}
 		switch (runCommands.type) {
 			case "list":
@@ -901,11 +908,87 @@ ${taskContents}`;
 					resolve();
 				});
 			case "help":
-				console.log("Help of taskero");
 				return new Promise(function(resolve, reject) {
+					// @TODO: print taskero's CLI help
+					console.log(`
+======================================
+=== Taskero Command-Line Tool Help ===
+======================================
+
+Taskero CLI has 3 commands:
+
+  1) taskero help: shows this help
+  2) taskero list [taskero files]: lists the tasks declared in the specified files, including their own description.
+  3) taskero run [options]: runs the specified tasks.
+
+======================================
+
+Syntax: (taskero run ~)
+
+  ~$ taskero run 
+    [-d | --debug]?
+    [-f | --files {taskero-file taskero-file ...}]?
+    [
+      [-n | --name {task-name}]
+      [--parameter {parameter-value parameter-value ...}]
+    ]*
+
+======================================
+
+Explanation about the syntax:
+
+  The 'taskero run' command needs to know 3 things:
+
+    1) Should I be debugged?
+    2) Which files should I take the tasks from?
+    3) Which tasks should I run? And with which commands?
+  
+  The way to specify them is the following:
+
+1)----------------------------------
+
+  [-d | --debug]?
+
+    : The debug flag. 
+    · If specified, the actions made by Taskero will be logged.
+
+2)----------------------------------
+
+  [-f | --files {taskero-files}]?
+
+    : The taskero files. 
+    · If specified, one can list all the files from which the tasks will be taken. 
+    · If omitted, the file 'taskero.file.js' will be automatically taken.
+
+3)----------------------------------
+
+  [ 
+    [-n | --name {task-name}]
+    [--parameter {parameter-value parameter-value ...}]
+  ]*
+
+    : The taskero tasks. 
+    · This pattern can be repeated multiple times. 
+    · It specifies the name of the task, and the parameters it must receive.
+    · The 'parameter-values' have their own syntax.
+    
+    Parameter-values syntax: 
+
+      :string:~ | :s:~          = {string} = "~"
+      :boolean:true | :b:true   = {boolean} = true
+      :boolean:false | :b:false = {boolean} = false
+      :number:~ | :n:~          = {number} = ~
+      { @~ ~ @~ ~ }             = {object} = { @~: ~, @~: ~ }
+      [ ~ ~ ~ ~ ~ ]             = {array} = [ ~, ~, ~, ~, ~ ]
+    
+    By default, ":string:" is set.
+
+======================================
+`);
 					resolve();
 				});
 			case "run":
+			default:
 				//
 				// @TODO: instantiate a new Taskero instance
 				//
@@ -987,27 +1070,23 @@ ${taskContents}`;
 				--name # name: "jsx:compile"
 					"jsx:compile"
 				--arg1 # arg1: [1,2,3,"@ this parameter starts with @"]
-					"number:1"
-					"number:2"
-					"number:3"
+					":number:1"
+					":number:2"
+					":number:3"
 					"string:-- this parameter starts with --"
 				--arg2 # arg2: ["default", "default1", "default2"]
 					"default"
 					"default1"
 					"default2"
 				--arg3
-					"number:1"
-					"number:2"
-					"number:3"
-					"string:@@@@ for 3 @ at the begining, and so on"
+					":number:1"
+					":number:2"
+					":number:3"
+					":string:@@@@ for 3 @ at the begining, and so on"
 				--watch # watch: false (overrides the previous --watch)
-					boolean:false
+					":boolean:false"
 				--watch 
-
 		//*/
-		//
-		// @TODO: transform (objectualize) parameters passed
-		//
 		var index = 0;
 		var execution = undefined;
 		var lastCommand = undefined;
@@ -1015,10 +1094,6 @@ ${taskContents}`;
 		WordsIteration: while (index < words.length) {
 			var word = words[index];
 			index++;
-			// console.log();
-			// console.log();
-			// console.log("State:", JSON.stringify(transformation, null, 3));
-			// console.log("Word:", word);
 			if (typeof execution === "undefined") {
 				if (~["run"].indexOf(word)) {
 					execution = word;
@@ -1081,6 +1156,7 @@ ${taskContents}`;
 				else if (lastCommand === "--name") {
 					if (~["--name", "-n"].indexOf(word)) {
 						transformation.run.push({});
+						lastCommand = "--name";
 						continue WordsIteration;
 					} else if (word.startsWith("--")) {
 						lastCommand = word;
@@ -1095,6 +1171,7 @@ ${taskContents}`;
 				else {
 					if (~["--name", "-n"].indexOf(word)) {
 						transformation.run.push({});
+						lastCommand = "--name";
 						continue WordsIteration;
 					} else if (word.startsWith("--")) {
 						lastCommand = word;
@@ -1116,16 +1193,38 @@ ${taskContents}`;
 						continue WordsIteration;
 					}
 				}
-			} else if (execution === "list") {
 			}
 		}
-		if (transformation.run.length === 0) {
-			transformation.run.push({
-				name: "default"
-			});
+		if (transformation.type === "run") {
+			if (transformation.run.length === 0) {
+				transformation.run.push({
+					name: "default"
+				});
+			}
+			transformation = Taskero.tipifyValues(transformation);
 		}
-
 		return transformation;
+	}
+
+	static tipifyValues(inp) {
+		var run = [];
+		inp.run.forEach(function(runItem) {
+			var newRunItem = {};
+			Object.keys(runItem).forEach(function(runItemKey) {
+				var runItemVal = runItem[runItemKey];
+				if (runItemVal instanceof Array) {
+					// Powered by Clitoris:
+					newRunItem[runItemKey] = Clitoris.parse(runItemVal);
+				} else {
+					newRunItem[runItemKey] = runItemVal;
+				}
+			});
+			run.push(newRunItem);
+		});
+		//console.log("OUTPUT...:", run);
+		//*/
+		var out = Object.assign({}, inp, { run });
+		return out;
 	}
 }
 
@@ -1157,13 +1256,25 @@ module.exports = { Taskero };
  *
  * But:
  *
- * - Webpack, which was the coolest, complicated things too much.
+ * - **Webpack**, which was the coolest, complicated things too much.
  *
- * - Grunt, which was my favourite, lacks of parametrization.
+ *   (I only need to listen for changes, and do things, I do not
+ *   want to change the way I code for a task-automation tool!
+ *   The less, the better: that is programming for me in a 70%
+ *   of the cases, for lots of reasons.)
  *
- * - Gulp, which was very promising, has a strange API.
+ * - **Grunt**, which was my favourite, lacks of parametrization.
  *
+ *   (And with it, the watchers functionality... but it was the
+ *   main reference I took, it was the easiest to understand, and
+ *   the one with more flexibility.)
  *
+ * - **Gulp**, which was very promising, has a strange API.
+ *
+ *   (I need flexibility, I can sacrifice a bit of beauty in
+ *   coding, but I need absolute transparence and flexibility,
+ *   and also parametrization was not contemplated, and so, the
+ *   watchers functionality...)
  *
  * ## 6. Problems
  *
@@ -1183,10 +1294,9 @@ module.exports = { Taskero };
  * time working on tools like this one. In the end, I am already using
  * my own tools for my developments.
  *
- *
  * ## 7. Conclusions
  *
- * In conclusion, `Taskero` is a project that aims to ease the tasks
+ * In conclusion, **`Taskero`** is a project that aims to ease the tasks
  * automation, which is a very fundamental part of any software
  * development project, and which takes a lot of time in development.
  *
@@ -1194,5 +1304,8 @@ module.exports = { Taskero };
  * against companies, or engineers, but... maybe I can provide something
  * interesting to them, despite not having a job yet. I do not know.
  *
+ * In fact, I do not want to compite. But it is your language.
+ *
+ * This is how you have been programmed. Deeply sad, tbh.
  *
  */
