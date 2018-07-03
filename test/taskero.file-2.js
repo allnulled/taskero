@@ -1,5 +1,6 @@
 const Taskero = require(__dirname + "/../src/taskero.js").Taskero;
 const taskero = new Taskero();
+const fs = require("fs-extra");
 
 taskero.register({
 	name: "file:2:hello",
@@ -30,7 +31,7 @@ This is a quite useless task.`
 taskero.register({
 	name: "file:2:dump",
 	onDone: function(done, files, args) {
-		require("fs").writeFileSync(args.dumpFile, args.dumpContents, "utf8");
+		fs.outputFileSync(args.dumpFile, args.dumpContents, "utf8");
 		done();
 	},
 	metadata: {

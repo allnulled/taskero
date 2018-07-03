@@ -6,8 +6,7 @@ const { ConsoleManager } = require("function-wrapper");
 describe("Taskero class", function() {
 	var utils = {
 		dump: function(file, content) {
-			fs.ensureFileSync(file);
-			fs.writeFileSync(file, content, "utf8");
+			fs.outputFileSync(file, content, "utf8");
 		},
 		remove: function(file) {
 			rimraf.sync(file);
@@ -30,7 +29,7 @@ describe("Taskero class", function() {
 	});
 
 	after(function() {
-		rimraf.sync(`${__dirname}/samples/*`);
+		//rimraf.sync(`${__dirname}/samples/*`);
 	});
 
 	it("is retrievable", function(done) {
@@ -376,6 +375,7 @@ describe("Taskero class", function() {
 				done();
 			})
 			.catch(function() {
+				ConsoleManager.recoverLog();
 				expect(true).to.equal(false);
 			});
 	});
@@ -400,6 +400,7 @@ describe("Taskero class", function() {
 				__dirname + "/samples/sample7.txt"
 			],
 			onWatchError: function(error) {
+				ConsoleManager.recoverLog();
 				console.log("[taskero:tarea:9] Error on watch event:", error);
 			}
 		});
@@ -407,7 +408,7 @@ describe("Taskero class", function() {
 			name: "tarea:9.5",
 			watch: true,
 			onDone: function(done, files, args) {
-				fs.writeFileSync(
+				fs.outputFileSync(
 					__dirname + "/samples/output-from-watch-2.txt",
 					"This is Sparta 2",
 					"utf8"
@@ -424,23 +425,24 @@ describe("Taskero class", function() {
 		taskero
 			.run(["tarea:9", "tarea:9.5"])
 			.then(function() {
+				ConsoleManager.recoverLog();
 				// @TODO: change contents from __dirname + "/samples/sample5.txt" and, with a (dirty) timeout, check if the task was correctly done.
 				expect(
 					fs.existsSync(__dirname + "/samples/output-from-watch.txt")
 				).to.equal(false);
-				fs.writeFileSync(
+				fs.outputFileSync(
 					__dirname + "/samples/sample5.txt",
 					"Changed!",
 					"utf8"
 				);
 				setTimeout(function() {
+					ConsoleManager.recoverLog();
 					taskero.closeWatchers();
 					expect(
 						fs.existsSync(__dirname + "/samples/output-from-watch.txt")
 					).to.equal(true);
 					expect(
-						fs
-							.readFileSync(__dirname + "/samples/output-from-watch.txt")
+						fs.readFileSync(__dirname + "/samples/output-from-watch.txt")
 							.toString()
 					).to.equal("This is Sparta");
 					expect(
@@ -451,11 +453,11 @@ describe("Taskero class", function() {
 							.readFileSync(__dirname + "/samples/output-from-watch-2.txt")
 							.toString()
 					).to.equal("This is Sparta 2");
-					ConsoleManager.recoverLog();
 					done();
 				}, 3000);
 			})
 			.catch(function(error) {
+				ConsoleManager.recoverLog();
 				console.log("ERROR ON WATCHERS", error);
 				expect(true).to.equal(false);
 			});

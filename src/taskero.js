@@ -27,50 +27,51 @@
  *
  *
  * ```js
+ * const fs = require("fs");
  * const Taskero = require("taskero").Taskero;
  * const taskero = new Taskero({debug:false});
- * const compileJSX = function(i) {
- *   // Here, you can modify the contents of the file
- *   return i
- * };
- * const fs = require("fs");
+ * const jsMinify = function(file) {return "// File minified:\n" + file;};
  *
  * taskero.register({
- *   name: "jsx:compile",
+ *   name: "say:something",
+ *   onDone: function(done, files, args) {
+ * 		 console.log(args.message);
+ * 		 done();
+ * 	 },
+ *	 message: "This is the default message"
+ * });
+ *
+ * taskero.register({
+ *   name: "js:minify",
  *   onEach: [
  *     function(done, file, args) {
- *       done(compileJSX(file.contents));
- *     },
- *     function(done, file, args) {
- *       fs.writeFileSync(file.path + args.filesAppendix, file.contents, "utf8")
+ *       fs.writeFileSync(file.path.replace(/\.jsx?$/gi, "") + args.filesAppendix, jsMinify(file.contents), "utf8");
  *       done();
  *     }
  *   ],
  *   onDone: [
  *     function(done, files, args) {
- *       console.log("[taskero:jsx:compile] Compilation finished for: " + JSON.stringify(files, null, 3));
- *       done(files.reduce(function(prev, curr) {
- *         return prev + "\n" + curr;
- *       }, ""));
+ *       console.log("[taskero:js:minify] Compilation finished for: " + JSON.stringify(files, null, 3));
  *     }
  *   ],
- *   files: "** /**.jsx"
- * });
- *
- * taskero.register({
- *   name: "say:ok",
- *   onDone: function() {console.log("OK!");}
+ *   files: "** /**.js"
  * });
  *
  * taskero.run([
  *   {
- *     name: "jsx:compile",
+ *     name: "say:something",
+ *		 message: "Starting the tasks!"
+ *   },{
+ *     name: "js:minify",
  *     filesAppendix: ".compiled.js",
  *     onDoneFile: "dist/compilation.js"
- *   },{
- *     name: "say:ok"
- * }]).then(function() {
- *   console.log("Task finished.");
+ *   },
+ *   {
+ *     name: "say:something",
+ *		 message: "Finished the tasks!"
+ *   }
+ * ]).then(function() {
+ *   console.log("Tasks finished.");
  * }).catch(function() {
  *   console.log("There were errors", error);
  * });
@@ -162,7 +163,7 @@ const Clitoris = require("clitoris").Clitoris;
  *
  * ----
  *
- * ### `require("taskero").Taskero`
+ * #### `require("taskero").Taskero`
  *
  * @type `{Class}`.
  *
@@ -174,7 +175,7 @@ class Taskero {
 	 *
 	 * ----
 	 *
-	 * ### `new Taskero(Object:options)`
+	 * #### `new Taskero(Object:options)`
 	 *
 	 * @type `{Class}`.
 	 *
@@ -201,7 +202,7 @@ class Taskero {
 		 *
 		 * ----
 		 *
-		 * ### `Taskero#tasksMap`
+		 * #### `Taskero#tasksMap`
 		 *
 		 * @type `{Object}`.
 		 *
@@ -214,7 +215,7 @@ class Taskero {
 		 *
 		 * ----
 		 *
-		 * ### `Taskero#options`
+		 * #### `Taskero#options`
 		 *
 		 * @type `{Object}`
 		 *
@@ -242,7 +243,7 @@ class Taskero {
 		 *
 		 * ----
 		 *
-		 * ### `Taskero#watchers`
+		 * #### `Taskero#watchers`
 		 *
 		 * @type `{Array<Object>}`
 		 *
@@ -271,7 +272,7 @@ class Taskero {
 	 *
 	 * ----
 	 *
-	 * ### `Taskero#register(Object:taskInfo)`
+	 * #### `Taskero#register(Object:taskInfo)`
 	 *
 	 * @type `{Function}`
 	 *
@@ -376,11 +377,11 @@ class Taskero {
 	 *
 	 * ----
 	 *
-	 * ### `Taskero#run(String:taskName)`
+	 * #### `Taskero#run(String:taskName)`
 	 *
-	 * ### `Taskero#run(Object:taskParameters)`
+	 * #### `Taskero#run(Object:taskParameters)`
 	 *
-	 * ### `Taskero#run(Array<Object:taskParameters>:tasks)`
+	 * #### `Taskero#run(Array<Object:taskParameters>:tasks)`
 	 *
 	 * @type `{void}`
 	 *
@@ -777,7 +778,7 @@ class Taskero {
 	 *
 	 * ----
 	 *
-	 * ### `Taskero#closeWatchers()`
+	 * #### `Taskero#closeWatchers()`
 	 *
 	 * @type `{Function}`.
 	 *
@@ -798,7 +799,7 @@ class Taskero {
 	 *
 	 * ----
 	 *
-	 * ### `Taskero#debug(Any:message,...)`
+	 * #### `Taskero#debug(Any:message,...)`
 	 *
 	 * @type `{Function}`.
 	 *
@@ -818,7 +819,7 @@ class Taskero {
 	 *
 	 * ----
 	 *
-	 * ### `Taskero#error(Any:message,...)`
+	 * #### `Taskero#error(Any:message,...)`
 	 *
 	 * @type `{Function}`.
 	 *
@@ -838,11 +839,11 @@ class Taskero {
 	 *
 	 * ----
 	 *
-	 * ### `Taskero.execute()`
+	 * #### `Taskero.execute()`
 	 *
-	 * ### `Taskero.execute(Array<String>:command)`
+	 * #### `Taskero.execute(Array<String>:command)`
 	 *
-	 * ### `Taskero.execute(String:command)`
+	 * #### `Taskero.execute(String:command)`
 	 *
 	 * @type `{Function}`.
 	 *
@@ -1003,11 +1004,11 @@ Explanation about the syntax:
 	 *
 	 * ----
 	 *
-	 * ### `Taskero.transformCommands()`
+	 * #### `Taskero.transformCommands()`
 	 *
-	 * ### `Taskero.transformCommands(Array<String>:command)`
+	 * #### `Taskero.transformCommands(Array<String>:command)`
 	 *
-	 * ### `Taskero.transformCommands(String:command)`
+	 * #### `Taskero.transformCommands(String:command)`
 	 *
 	 * @type `{Function}`.
 	 *
