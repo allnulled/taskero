@@ -33,49 +33,55 @@ const Taskero = require("taskero").Taskero;
 const taskero = new Taskero({debug:false});
 const jsMinify = function(file) {return "// File minified:\n" + file;};
 
-taskero.register({
- name: "say:something",
- onDone: function(done, files, args) {
-		 console.log(args.message);
-		 done();
-	 },
-message: "This is the default message"
-});
-
-taskero.register({
- name: "js:minify",
- onEach: [
-   function(done, file, args) {
-     fs.writeFileSync(file.path.replace(/\.jsx?$/gi, "") + args.filesAppendix, jsMinify(file.contents), "utf8");
+taskero.register(
+ {
+   name: "say:something",
+   onDone: function(done, files, args) {
+     console.log(args.message);
      done();
-   }
- ],
- onDone: [
-   function(done, files, args) {
-     console.log("[taskero:js:minify] Compilation finished for: " + JSON.stringify(files, null, 3));
-   }
- ],
- files: "**/**.js"
-});
-
-taskero.run([
- {
-   name: "say:something",
-	 message: "Starting the tasks!"
- },{
-   name: "js:minify",
-   filesAppendix: ".compiled.js",
-   onDoneFile: "dist/compilation.js"
- },
- {
-   name: "say:something",
-	 message: "Finished the tasks!"
+   },
+   message: "This is the default message"
  }
-]).then(function() {
- console.log("Tasks finished.");
-}).catch(function() {
- console.log("There were errors", error);
-});
+);
+
+taskero.register(
+ {
+   name: "js:minify",
+   onEach: 
+   [
+     function(done, file, args) {
+       fs.writeFileSync(file.path.replace(/\.jsx?$/gi, "") + args.filesAppendix, jsMinify(file.contents), "utf8");
+       done();
+     }
+   ],
+   onDone: [
+     function(done, files, args) {
+       console.log("[taskero:js:minify] Compilation finished for: " + JSON.stringify(files, null, 3));
+     }
+   ],
+   files: "**/**.js"
+ }
+);
+
+taskero.run(
+ [
+   {
+     name: "say:something",
+     message: "Starting the tasks!"
+   },
+   {
+     name: "js:minify",
+     filesAppendix: ".compiled.js",
+     onDoneFile: "dist/compilation.js"
+   },
+   {
+     name: "say:something",
+     message: "Finished the tasks!"
+   }
+ ]
+)
+.then(() => console.log("Tasks finished."))
+.catch(() => console.log("There were errors", error));
 ```
 
 ### 2.2. Step-by-step explanation
@@ -117,24 +123,25 @@ current task. They, though, will be extendable by the `Taskero#run(~)` method.
 #### 3. Run the tasks we want, overriding or adding the parameters we want.
 
 ```js
-taskero.run([{
- name: "task:1",
-}, {
- name: "task:2",
-}, {
- name: "task:3",
-}, {
- name: "name of the already registered task",
- files: [/*Glob patterns*/],
- watch: true, // this will run the task as watcher
- onDoneFile: "dist/build.js",
- customArgument1: [],
- customArgument2: [],
- customArgument3: [],
- customArgument4: [],
- customArgument5: [],
- customArgument6: []
-}]);
+taskero.run(
+ [
+   {name:"task:1"},
+   {name:"task:2"},
+   {name:"task:3"},
+   {
+     name: "name of the already registered task",
+     files: [/*Glob patterns*/],
+     watch: true, // this will run the task as watcher
+     onDoneFile: "dist/build.js",
+     customArgument1: [],
+     customArgument2: [],
+     customArgument3: [],
+     customArgument4: [],
+     customArgument5: [],
+     customArgument6: []
+   }
+ ]
+);
 ```
 
 The `Taskero#run(~)` method accepts different types of arguments. The shown below
