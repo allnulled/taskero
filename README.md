@@ -57,6 +57,7 @@ taskero.register(
    onDone: [
      function(done, files, args) {
        console.log("[taskero:js:minify] Compilation finished for: " + JSON.stringify(files, null, 3));
+       done();
      }
    ],
    files: "**/**.js"
